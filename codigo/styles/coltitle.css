@@ -1,0 +1,50 @@
+.EL--custom-hdg-h2 {
+  width: 50%;
+  font-size: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.EL--custom-row{
+  max-width: 1200px;
+  margin-bottom: 0rem!important;
+}
+
+.EL--custom-col8{
+  width: 45%;
+  text-align: left;
+  font-size: 14px;
+  line-height: 28px;
+}
+
+.EL--hr-gradient {
+  border: 1px solid #56015E;
+  opacity: unset;
+  width: 90%;
+  margin: 3rem auto 3rem auto;
+}
+
+.EL--hr-gradient.red {
+  border: 1px solid #F01B53;
+}
+
+@media (max-width: 767.9px) {
+  .EL--custom-col8{
+    width: 100%;
+  }
+  .EL--custom-hdg-h2 {
+    width: 100%;
+  }
+  .my-5.EL--custom-row{
+    margin-top: 0rem!important;
+    margin-bottom: 0rem!important;
+    padding: 2% 4% 4% 4%;
+  }
+  .EL--custom-hdg-h2{
+    justify-content: unset;
+  }
+  .EL--hr-gradient {
+    width: 100%;
+  }
+}

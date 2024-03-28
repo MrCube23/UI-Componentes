@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Estilos para la clase "nav-link" */
+.nav-link {
+    color: #310e35;
+}
+
+.nav-link:focus, .nav-link:hover {
+    color: #a603b4;
+}
+
+/* Estilos para el botón "btn btn-primary ml-auto" */
+.btn.btn-primary.ml-auto {
+    background-image: unset;
+    background-color: #F01B53;
+    border-color: #F01B53;
+    font-weight: bold;
+    width: 130px;
+    border-radius: 0px;
+}
+
+.btn.btn-primary.ml-auto:hover {
+    background-color: #FF5F7B;
+    border-color: #FF5F7B;
+}
+
+@media (max-width: 991px) {
+    /* Ajuste de estilo para el botón de inicio de sesión */
+    .btn.btn-primary.ml-auto {
+        width: 100%;
+        margin-top: 25px;
+        text-align: center;
+    }
+
+    /* Ajuste de estilo para las líneas de los elementos de la barra de navegación */
+    .navbar-nav {
+        margin-top: 10px;
+    }	
+
+    .navbar-nav li {
+        border-top: 1px solid rgba(0,0,0,.54);
+    }
+
+    .navbar-nav li:last-child {
+        border-bottom: 1px solid rgba(0,0,0,.54);
+    }    
+
+    .mx-4 {
+        margin-right: unset !important;
+        margin-left: unset !important;
+    }
+
+    .nav-link {
+        margin-left: 1.5em !important;
+    }
+
+}
+
+@media (min-width: 1px) and (max-width: 991px) {
+    .navbar .container{
+        max-width: unset;
+    }
+}
+
+@media (min-width: 1400px){
+    .navbar .container{
+        max-width: 1225px;
+    }
+}

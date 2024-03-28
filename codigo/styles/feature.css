@@ -1,0 +1,35 @@
+.EL--info-custom-hdg-h2 {
+  text-align: initial;
+  font-weight: 500 !important;
+  font-size: 22px;
+}
+
+.margin-container{
+  padding: 0% 4% 0% 4%;
+}
+
+.EL--hr-gradient.color2 {
+  border: 1px solid #F01B53;
+}
+
+.EL--custom-txt1{
+  text-align: initial;
+  font-size: 14px;
+  line-height: 25px;
+  margin-bottom: 2rem;
+}
+
+.EL--custom-txt2{
+  font-size: 14px;
+  line-height: 27px
+}
+
+.columnList_cc4 img, svg{
+  width: 100%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
+.columnList_cc4 h3, p{
+  text-align: initial;
+}
