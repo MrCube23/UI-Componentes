@@ -9,7 +9,7 @@
     <link rel="shortcut icon" href="img/simple-logo.svg" />
 
     <!-- Enlaza el archivo de estilos unificado -->
-    <link rel="stylesheet" href="styles/useraccess.css">
+    <link rel="stylesheet" href="styles/registerStyle.css">
 
     <!-- Enlaces a fuentes y otros archivos de CSS externos que no se han integrado -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,63 +37,64 @@
         </div>
 
             <div class="form-fields signup">
-                <div class="input-field">
-                    <i class="fa-solid fa-circle-user input-icon"></i>
-                    <input type="number" placeholder="Número de Cédula" id="txtcedula">
-                </div>
-
-                <div class="two-col">
+                <div class="input-field-group">
                     <div class="input-field">
                         <i class="fa-solid fa-pen input-icon"></i>
                         <input type="text" placeholder="Nombre" id="txtnombre">
                     </div>
-
                     <div class="input-field">
                         <i class="fa-solid fa-pen input-icon"></i>
                         <input type="text" placeholder="Primer Apellido" id="txtprimerapellido">
                     </div>
-
                     <div class="input-field">
                         <i class="fa-solid fa-pen input-icon"></i>
                         <input type="text" placeholder="Segundo Apellido" id="txtsegundoapellido">
                     </div>
                 </div>
 
-                <div class="input-field">
-                    <i class="fa-solid fa-location-dot input-icon"></i>
-                    <select id="txtprovincia">
-                        <option value="">-- Seleccione una provincia --</option>
-                        <option value="San Jose">San José</option>
-                        <option value="Alajuela">Alajuela</option>
-                        <option value="Cartago">Cartago</option>
-                        <option value="Heredia">Heredia</option>
-                        <option value="Puntarenas">Puntarenas</option>
-                        <option value="Limon">Limón</option>
-                        <option value="Guanacaste">Guanacaste</option>
-                    </select>
+                <div class="input-field-group pair">
+                    <div class="input-field">
+                        <i class="fa-solid fa-circle-user input-icon"></i>
+                        <input type="number" placeholder="Número de Cédula" id="txtcedula">
+                    </div>
+
+                    <div class="input-field state">
+                        <i class="fa-solid fa-location-dot input-icon"></i>
+                        <select id="txtprovincia">
+                            <option value="">-- Seleccione una provincia --</option>
+                            <option value="San Jose">San José</option>
+                            <option value="Alajuela">Alajuela</option>
+                            <option value="Cartago">Cartago</option>
+                            <option value="Heredia">Heredia</option>
+                            <option value="Puntarenas">Puntarenas</option>
+                            <option value="Limon">Limón</option>
+                            <option value="Guanacaste">Guanacaste</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="input-field">
-                    <i class="fa-solid fa-envelope input-icon"></i>
-                    <input type="text" placeholder="Correo electrónico" id="txtmail">
-                </div>
+                <div class="input-field-group pair">
+                        <div class="input-field">
+                            <i class="fa-solid fa-envelope input-icon"></i>
+                            <input type="text" placeholder="Correo electrónico" id="txtmail">
+                        </div>
 
-                <div class="input-field">
-                    <i class="fa-solid fa-key input-icon"></i>
-                    <input type="password" placeholder="Contraseña" id="contrasenia">
+                        <div class="input-field">
+                            <i class="fa-solid fa-key input-icon"></i>
+                            <input type="password" placeholder="Contraseña" id="contrasenia">
+                        </div>
+                    </div>
                 </div>
-            </div>
              <div class="item-container">
                 <div>
                     <a id="btnRegistrar" class="btn-registrar">Regístrate</a>
                 </div>
 
                 <div class="bottom-options">
-                    <a class="btn-restaurar">¿Tienes una cuenta de EasyList?</a>
+                    <a class="btn-restaurar">¿Tienes una cuenta de Sonux?</a>
                     <a class="btn-other-option" href="login.html"> Iniciar sesión</a>
                 </div>
             </div>
-        </main>
     </div>
 </body>
 
