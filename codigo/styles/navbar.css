@@ -34,6 +34,7 @@ body {
         width: 100%;
         margin-top: 25px;
         text-align: center;
+        border-radius: 1em;
     }
 
     /* Ajuste de estilo para las líneas de los elementos de la barra de navegación */
@@ -71,3 +72,36 @@ body {
         max-width: 1225px;
     }
 }
+
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+      background-color: #f8f9fa; /* Background color for the collapsible navbar */
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .navbar-nav {
+      text-align: center;
+    }
+
+    .navbar-nav .nav-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .navbar-nav .nav-link {
+      font-weight: bold;
+      transition: color 0.3s ease;
+      margin: 1vh;
+    }
+
+    .navbar-nav .nav-link:hover {
+      color: #007bff; /* Color for nav links on hover */
+    }
+
+    .btn-primary {
+      margin-top: 1rem; /* Top margin for the login button */
+      margin-bottom: 1rem; /* Bottom margin for the login button */
+      display: block; /* Ensure the button is displayed as a block element */
+      width: 100%; /* Make the button fill the width of its container */
+    }
+  }
