@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.0/font/bootstrap-icons.css">
   <link rel="shortcut icon" href="img/simple-logo.svg" />
-<!-- Bootstrap CSS -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="styles/template.css">
   <link rel="stylesheet" type="text/css" href="styles/banner.css">
@@ -52,17 +51,21 @@
   </nav>
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Crear Cupon</h2>
+    <h2 class="text-center mb-4">Crear Producto</h2>
     <form action="#" method="post" enctype="multipart/form-data">
         <div class="form-group">
-            <label for="productName">Codigo Cupon:</label>
-            <input type="text" class="form-control" id="cuponName" name="cuponName" required>
+            <label for="productName">Nombre Producto:</label>
+            <input type="text" class="form-control" id="productName" name="productName" required>
         </div>
         <div class="form-group">
-            <label for="price">Descuento:</label>
-            <input type="number" class="form-control" id="cuponDiscount" name="cuponDiscount" step="0.01" min="0" required>
+            <label for="description">Descripción:</label>
+            <textarea class="form-control" id="productDescription" name="description" rows="3" required></textarea>
         </div>
-        <button type="submit" class="btn btn-primary create-button-form" id="btnCreateCupon">Crear</button>
+        <div class="form-group">
+            <label for="price">Precio:</label>
+            <input type="number" class="form-control" id="productPrice" name="price" step="0.01" min="0" required>
+        </div>
+        <button type="submit" class="btn btn-primary create-button-form" id="btnCreateProduct">Crear</button>
     </form>
 </div>
 
@@ -96,11 +99,10 @@
   </div>
 </footer>
 
-<!-- Bootstrap JS -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-<script src="JS/CuponnController.js"></script>
+<script src="JS/ProductoController.js"></script>
 </body>
 </html>

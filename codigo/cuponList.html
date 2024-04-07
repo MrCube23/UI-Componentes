@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.0/font/bootstrap-icons.css">
   <link rel="shortcut icon" href="img/simple-logo.svg" />
-<!-- Bootstrap CSS -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="styles/template.css">
   <link rel="stylesheet" type="text/css" href="styles/banner.css">
@@ -51,20 +50,30 @@
     </div>
   </nav>
 
-<div class="container mt-5">
-    <h2 class="text-center mb-4">Crear Cupon</h2>
-    <form action="#" method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="productName">Codigo Cupon:</label>
-            <input type="text" class="form-control" id="cuponName" name="cuponName" required>
+  <section class="row mx-auto text-center EL--custom-row border-space" id="requests">
+    <div class="row mx-auto text-center margin-container">
+      <div class="col-12">
+        <h2 class="display-2 EL--info-custom-hdg-h2 mb-4">Cupones Disponibles</h2>
+        <p class="EL--custom-txt1">
+          Sumérgete en nuestro amplio catálogo de productos musicales que incluyen instrumentos de primera calidad, álbumes imprescindibles, accesorios esenciales y equipos de grabación profesionales. En Sonux, encontrarás todo lo que necesitas para llevar tu pasión por la música al siguiente nivel.
+        </p>
+        <div class="table-responsive">
+          <table class="table table-striped mb-5">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Codigo</th>
+                <th>Descuento</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="dynamicTableBody">
+            </tbody>
+          </table>
         </div>
-        <div class="form-group">
-            <label for="price">Descuento:</label>
-            <input type="number" class="form-control" id="cuponDiscount" name="cuponDiscount" step="0.01" min="0" required>
-        </div>
-        <button type="submit" class="btn btn-primary create-button-form" id="btnCreateCupon">Crear</button>
-    </form>
-</div>
+      </div>
+    </div>
+  </section>
 
 <footer class="footer bg-darkblue text-light" id="footer">
   <div class="row justify-content-between footer-container EL--custom-row">
@@ -96,7 +105,6 @@
   </div>
 </footer>
 
-<!-- Bootstrap JS -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

@@ -6,3 +6,27 @@
 .mt-5{
     height: 50vh;
 }
+
+.btnDeleteProduct{
+    color: #F01B53;
+}
+
+.btnDeleteProduct:hover{
+    color: #F01B53;
+}
+
+.btnModifyProduct:hover{
+    color: #007bff;
+}
+
+.btnDecoratioStyleDel{
+    color: #F01B53;
+}
+
+.btnDecoratioStyleDel:hover{
+    color: #F01B53;
+}
+
+.btnDecoratioStyleMod:hover{
+    color: #007bff;
+}

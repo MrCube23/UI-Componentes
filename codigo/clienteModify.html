@@ -46,23 +46,37 @@
             <a class="nav-link" href="#footer">Contacto</a>
           </li>
         </ul>
-        <a class="btn btn-primary ml-auto" href="login.html">Iniciar sesión</a>
       </div>
     </div>
   </nav>
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Crear Cupon</h2>
+    <h2 class="text-center mb-4">Actualizar Cliente</h2>
     <form action="#" method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="productName">Codigo Cupon:</label>
-            <input type="text" class="form-control" id="cuponName" name="cuponName" required>
+      <div class="row">
+          <div class="col">
+              <label for="clienteName">Nombre:</label>
+              <input type="text" class="form-control" id="clienteName" name="clienteName" required>
+          </div>
+          <div class="col">
+              <label for="clientePRA">Primer Apellido:</label>
+              <input type="text" class="form-control" id="clientePRA" name="clientePRA" required>
+          </div>
+          <div class="col">
+            <label for="clienteSGA">Segundo Apellido:</label>
+            <input type="text" class="form-control" id="clienteSGA" name="clienteSGA" required>
         </div>
-        <div class="form-group">
-            <label for="price">Descuento:</label>
-            <input type="number" class="form-control" id="cuponDiscount" name="cuponDiscount" step="0.01" min="0" required>
-        </div>
-        <button type="submit" class="btn btn-primary create-button-form" id="btnCreateCupon">Crear</button>
+      </div>
+      <div class="form-group">
+        <label for="mail">Correo Electronico:</label>
+        <input type="text" class="form-control" id="mail" name="mail" required>
+    </div>
+    <div class="form-group">
+      <label for="direction">Direccion:</label>
+      <input type="text" class="form-control" id="direction" name="direction" required>
+  </div>
+        <button type="submit" class="btn btn-primary create-button-form" id="btnUpdateCliente">Actualizar</button>
+        <button type="button" class="btn btn-secondary" id="btnCancel">Cancelar</button>
     </form>
 </div>
 
@@ -101,6 +115,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-<script src="JS/CuponnController.js"></script>
+<script src="JS/ClienteController.js"></script>
 </body>
 </html>

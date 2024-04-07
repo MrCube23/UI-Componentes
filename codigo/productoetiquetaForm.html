@@ -52,17 +52,23 @@
   </nav>
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Crear Cupon</h2>
+    <h2 class="text-center mb-4">Asignar etiquetas a producto</h2>
     <form action="#" method="post" enctype="multipart/form-data">
         <div class="form-group">
-            <label for="productName">Codigo Cupon:</label>
-            <input type="text" class="form-control" id="cuponName" name="cuponName" required>
+            <label for="etiquetas">Etiqueta:</label>
+            <select name="etiquetas" id="etiquetasSelect" class="form-control" required>
+            </select>
         </div>
         <div class="form-group">
-            <label for="price">Descuento:</label>
-            <input type="number" class="form-control" id="cuponDiscount" name="cuponDiscount" step="0.01" min="0" required>
+            <label for="productos">Producto:</label>
+            <select name="productos" id="productosSelect" class="form-control" required>
+            </select>
         </div>
-        <button type="submit" class="btn btn-primary create-button-form" id="btnCreateCupon">Crear</button>
+        <div class="form-group">
+          <label for="amountOfProducts">Cantidad:</label>
+          <input type="number" class="form-control" id="amountOfProducts" name="amountOfProducts" step="0.01" min="0" required>
+      </div>
+        <button type="submit" class="btn btn-primary create-button-form" id="btnCreateProductoEtiqueta">Asignar</button>
     </form>
 </div>
 
@@ -101,6 +107,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-<script src="JS/CuponnController.js"></script>
+<script src="JS/ProductoEtiquetaController.js"></script>
 </body>
 </html>
