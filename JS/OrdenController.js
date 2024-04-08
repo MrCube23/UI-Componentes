@@ -2,28 +2,26 @@ let action = null;
 let type = "orden";
 let appliedDiscount = 0;
 let cuponUsado = false;
+let cupon = null;
+let cliente = null;
 var totalActual = 0;
 
 async function startOfPage() {
   checkValidarButtonState();
-  GetDataAndPopulateSelectCli()
+  GetDataAndPopulateSelectCli();
   cargarvalidacioncupones();
-  agregarProducto(true);  
-  
-  //await GetDataAndPopulateTable();
-  let urlId = getIdFromURL();
-  if (urlId) GetDataOfSpecificId(urlId);
+  agregarProducto(true);
 
   var btnDeleteOrden = document.querySelectorAll(".btnDeleteOrden");
   console.log(btnDeleteOrden);
 
   const btnCreateOrden = document.getElementById("btnCreateCliente"); // Assuming this is the correct button ID
   if (btnCreateOrden) {
-  btnCreateOrden.addEventListener("click", function (e) {
-    e.preventDefault();
-    validarNuevaOrden();
-  });
-}
+    btnCreateOrden.addEventListener("click", function (e) {
+      e.preventDefault();
+      validarNuevaOrden();
+    });
+  }
 
   if (btnDeleteOrden != null) {
     for (var i = 0; i < btnDeleteOrden.length; i++) {
@@ -36,6 +34,26 @@ async function startOfPage() {
   }
 }
 
+async function cargarvalidacioncupones() {
+  document.getElementById('btnValitadeCupon').addEventListener('click', async function (e) {
+    e.preventDefault();
+    var cuponCodigo = document.getElementById('codigo-cupon').value;
+    var iconSpan = document.querySelector('.input-group-text i');
+
+    var descuento = await validarCupon(cuponCodigo);
+    if (descuento) {
+
+      console.log('Descuento aplicado:', descuento);
+      // Cambiar clase del icono a check si el cupón es válido
+      iconSpan.className = 'bi bi-check-circle-fill text-success';
+    } else {
+      console.error('Error al validar el cupón:', error);
+      // Cambiar clase del icono a x-circle si el cupón no es válido
+      iconSpan.className = 'bi bi-x-circle-fill text-danger';
+    }
+  });
+}
+
 function checkValidarButtonState() {
   var totalInput = document.getElementById("total");
   var btnValidar = document.getElementById("btnValitadeCupon");
@@ -45,39 +63,6 @@ function checkValidarButtonState() {
   console.log('isTotalValid:', isTotalValid);
   console.log('cuponUsado:', cuponUsado);
 }
-
-function cargarvalidacioncupones() {
-  document.getElementById('btnValitadeCupon').addEventListener('click', async function(e) {
-    e.preventDefault();
-    var cuponCodigo = document.getElementById('codigo-cupon').value;
-    var iconSpan = document.querySelector('.input-group-text i');
-
-    try {
-      var descuento = await validarCupon(cuponCodigo);
-      Swal.fire({
-        icon: 'success',
-        title: '¡Cupón válido!',
-        text: `Se aplicó un descuento de ${descuento}%`,
-      });
-      // Cambiar clase del icono a check si el cupón es válido
-      iconSpan.className = 'bi bi-check-circle-fill text-success';
-    } catch (error) {
-      console.error('Error al validar el cupón:', error);
-      Swal.fire({
-        icon: 'error',
-        title: '¡Oops...',
-        text: '¡Cupón inválido!',
-      });
-      // Cambiar clase del icono a x-circle si el cupón no es válido
-      iconSpan.className = 'bi bi-x-circle-fill text-danger';
-    }
-  });
-}
-
-
-
-
-
 
 function goToList() {
   window.open("ordenList.html", "_self");
@@ -91,6 +76,7 @@ function callINFUsuario(id) {
       url: apiURL,
       success: function (response) {
         resolve(response.nombreCompleto);
+        cliente = response;
       },
       error: function (error) {
         reject(error);
@@ -117,144 +103,131 @@ function callINFProducto(id) {
 
 function validarNuevaOrden() {
   const clienteId = document.getElementById('clientesSelect').value;
-  const codigoCupon = document.getElementById('codigo-cupon').value;
   const total = document.getElementById('total').value;
 
-  // Validate required fields and details
-  if (!clienteId || detalles.length === 0 || !total) {
-    Swal.fire({
-      title: "Error",
-      icon: "error",
-      text: "Please select a client, add at least one product, and ensure the total is calculated.",
-    });
-    return;
-  }
+  if (clienteId.trim() !== '' && total.trim() !== '') {
 
-  const tempIDs = [];
+    var nuevaOrden = {
+      "total": parseFloat(total),
+      "fecha": new Date().toISOString().replace(/T.*/, ''),
+      "cliente": {
+        "clienteId": clienteId
+      },
+      "cupon": cupon,
+    }
 
-  // Create order details first
-  for (const detalle of detalles) {
+    var apiUrl = "http://localhost:4090/api/Orden/crearOrden";
+
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "POST",
-      url: "http://localhost:4090/api/DetalleOrden/crear", // Endpoint for creating details
+      url: apiUrl,
       dataType: "json",
-      data: JSON.stringify(detalle),
-      success: function(response) {
-        tempIDs.push(response.detalleId);
-
-        // If all details created, create the order
-        if (tempIDs.length === detalles.length) {
-          crearOrden(clienteId, codigoCupon, tempIDs, total);
-        }
+      data: JSON.stringify(nuevaOrden),
+      hasContent: true,
+      statusCode: {
+        200: function (data) {
+          mostrarMensaje("creado", 200);
+          validarNuevaOrdenDetalle(data.ordenId);
+        },
+        201: function () {
+          mostrarMensaje("creado", 201);
+          validarNuevaOrdenDetalle(data.ordenId);
+        },
+        400: function () {
+          mostrarMensaje("crear", 400);
+        },
+        404: function () {
+          mostrarMensaje("crear", 404);
+        },
+        500: function () {
+          mostrarMensaje("crear", 500);
+        },
       },
-      error: function(xhr, status, error) {
-        console.error("Error creating order details:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Error creating order details!",
-        });
-      },
+    });
+  } else {
+    Swal.fire({
+      title: "Message",
+      icon: "error",
+      text: "Por favor, complete todos los campos.",
     });
   }
 }
 
-function crearOrden(clienteId, codigoCupon, detallesIDs, total) {
-  const nuevaOrden = { 
-    // ordenId: will be generated by backend,
-    clienteId, 
-    cuponId: codigoCupon ? codigoCupon : null, // Assuming null for no coupon
-    fecha: new Date().toISOString(),
-    total,
-    detalles: detallesIDs 
-  };
+function validarNuevaOrdenDetalle(ordenId) {
+
+  var productosData = [];
+
+  $(".producto-row").each(function () {
+    var productoSelect = $(this).find(".productosSelect");
+    var quantityInput = $(this).find(".quantity-input");
+
+    var productoId = productoSelect.val();
+    var cantidad = quantityInput.val();
+
+    // Verificar si los valores son válidos antes de agregarlos al array
+    if (productoId !== "null" && cantidad && !isNaN(cantidad)) {
+      productosData.push({ productoId, cantidad });
+    } else {
+      console.warn("Se encontraron valores inválidos en la fila del producto.");
+    }
+
+  });
+
+
+  for (const producto of productosData) {
+    const nuevoOrdenDetalle = {
+      orden: {
+        ordenId,
+      },
+      producto: {
+        productoId: parseInt(producto.productoId),
+      },
+      cantidad: parseInt(producto.cantidad),
+    };
+
+    crearOrdenDetalle(nuevoOrdenDetalle);
+
+  }
+
+  Swal.fire({
+    title: "Success",
+    icon: "success",
+    text: "Orden creada exitosamente!",
+  });
+
+}
+
+function crearOrdenDetalle(nuevoOrdenDetalle) {
 
   $.ajax({
     headers: {
       Accept: "application/json",
     },
     method: "POST",
-    url: "http://localhost:4090/api/Orden/crear", // Endpoint for creating orders
+    url: "http://localhost:4090/api/DetallesOrden/crearDetallesOrden",
     dataType: "json",
-    data: JSON.stringify(nuevaOrden),
+    data: JSON.stringify(nuevoOrdenDetalle),
     hasContent: true,
     statusCode: {
       200: function () {
-        mostrarMensaje("creada", 200), clearFormFields(), waitForConfirmation();
-      }
-      // ... other status codes
+        console.log("Detalle de orden creado con éxito.");
+      },
+      201: function () {
+        console.log("Detalle de orden creado con éxito (código 201).");
+      },
+      400: function () {
+        console.error("Error 400: Solicitud incorrecta al crear detalle de orden.");
+      },
+      404: function () {
+        console.error("Error 404: Ruta no encontrada para crear detalle de orden.");
+      },
+      500: function () {
+        console.error("Error 500: Error del servidor al crear detalle de orden.");
+      },
     },
-  });
-}
-
-
-
-
-async function GetDataAndPopulateTable() {
-  return new Promise((resolve, reject) => {
-    var apiUrl = "http://localhost:4090/api/Orden/obtenerTodasLasOrdenes";
-
-    $.ajax({
-      url: apiUrl,
-      method: "GET",
-      dataType: "json",
-    })
-      .done(async function (data) {
-        // *** Check if data is valid before proceeding ***
-        if (!data || data.length === 0 || typeof data[0].usuarioId === 'undefined') {
-          console.error("Invalid data received from API."); 
-          // Handle the error (e.g., display a message to the user)
-          return; // Or throw an error to stop execution
-        }
-
-        var tableBody = $("#dynamicTableBody");
-        tableBody.empty();
-
-        var requests = [];
-
-        for (var i = 0; i < data.length; i++) {
-          var usuarioRequest = callINFUsuario(data[i].usuarioId);
-          requests.push(usuarioRequest);
-        }
-
-        var responses = await Promise.all(requests);
-
-        for (var i = 0; i < responses.length; i++) {
-          var usuarioName = responses[i];
-
-          tableBody.append(
-            "<tr>" +
-            '<th scope="row" class="txtId">' +
-            data[i].ordenId +
-            "</th>" +
-            '<td class="txtUsuarioId">' +
-            usuarioName +
-            "</td>" +
-            '<td class="codigoCupon">' +
-            data[i].codigoCupon +
-            "</td>" +
-            '<td class="actionDelete"><a class="btnDecoratioStyleMod btnModifyOrden" href="ordenModify.html?id=' +
-            data[i].ordenId +
-            '">Actualizar</a> / <a  href="#" class="btnDecoratioStyleDel btnDeleteOrden" orden-id="' +
-            data[i].ordenId +
-            '">Eliminar</a></td>' +
-            "</tr>"
-          );
-        }
-
-        resolve();
-      })
-      .fail(function (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Error!",
-        });
-        reject();
-      });
   });
 }
 
@@ -292,32 +265,6 @@ function getIdFromURL() {
   return urlParams.get("id");
 }
 
-async function GetDataOfSpecificId(selectedOrdenId) {
-  var apiUrl = `http://localhost:4090/api/Orden/obtenerOrdenPorId/${selectedOrdenId}`;
-  try {
-    var response = await $.ajax({
-      method: "GET",
-      url: apiUrl,
-    });
-    var usuarioName = await callINFUsuario(response.usuarioId);
-
-    var clientesSelect = $("#clientesSelect");
-
-    var clienteOption = clientesSelect.find(`option[value="${response.usuarioId}"]`);
-    if (clienteOption.length) {
-      clienteOption.text(usuarioName);
-    } else {
-      clientesSelect.append(`<option value="${response.usuarioId}">${usuarioName}</option>`);
-    }
-
-    clientesSelect.val(response.usuarioId);
-
-    $("#clientePRA").val(response.codigoCupon);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 function modificarOrden() {
   var id = getIdFromURL();
   var cliente = document.getElementById('clientesSelect').value;
@@ -342,13 +289,13 @@ function modificarOrden() {
       statusCode: {
         200: function () {
           mostrarMensaje("actualizada", 200),
-            clearFormFields(),
-            waitForConfirmation();
+            clearFormFields();
+          //waitForConfirmation();
         },
         201: function () {
           mostrarMensaje("actualizada", 201),
-            clearFormFields(),
-            waitForConfirmation();
+            clearFormFields();
+          //waitForConfirmation();
         },
         400: function () {
           mostrarMensaje("actualizar", 400);
@@ -370,8 +317,39 @@ function modificarOrden() {
   }
 }
 
+function fillProductSelect(selectElement, excludedProducts) {
+  var apiUrl = "http://localhost:4090/api/Producto/obtenerProductos";
+
+  $.ajax({
+    url: apiUrl,
+    method: "GET",
+    dataType: "json",
+    success: function (data) {
+      selectElement.empty();
+      selectElement.append('<option value="null" disabled>--Selecciona--</option>');
+
+      $.each(data, function (index, producto) {
+        if (!excludedProducts.includes(producto.productoId)) {
+          selectElement.append(
+            '<option value="' + producto.productoId + '" data-price="' + producto.precio + '">' + producto.nombre + '</option>'
+          );
+        }
+      });
+      selectElement.val("null");
+    },
+    error: function (error) {
+      console.error("Error al obtener productos:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Error al cargar productos!",
+      });
+    },
+  });
+}
+
 function GetDataAndPopulateSelectCli() {
-  var apiUrl = "http://localhost:4090/api/Cliente/obtenerClientes"; 
+  var apiUrl = "http://localhost:4090/api/Cliente/obtenerClientes";
 
   $.ajax({
     url: apiUrl,
@@ -383,13 +361,13 @@ function GetDataAndPopulateSelectCli() {
       selectOptions.empty();
 
       // Add a disabled placeholder option
-      selectOptions.append('<option value="" disabled selected>Selecciona un cliente</option>'); 
+      selectOptions.append('<option value="" disabled selected>Selecciona un cliente</option>');
 
       for (var i = 0; i < data.length; i++) {
         selectOptions.append(
-          '<option value="' + data[i].clienteId + '">' + 
-          data[i].nombre + ' ' + data[i].primerApellido + ' ' + data[i].segundoApellido + 
-          '</option>' 
+          '<option value="' + data[i].clienteId + '">' +
+          data[i].nombre + ' ' + data[i].primerApellido + ' ' + data[i].segundoApellido +
+          '</option>'
         );
       }
     })
@@ -397,7 +375,7 @@ function GetDataAndPopulateSelectCli() {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Error al cargar clientes!", 
+        text: "Error al cargar clientes!",
       });
     });
 }
@@ -433,19 +411,19 @@ function agregarProducto(isFirst) {
   `);
 
   // Agregar event listeners a los botones de incremento y decremento
-  productoRow.find(".decreaseBtn").click(function() {
+  productoRow.find(".decreaseBtn").click(function () {
     decrementarCantidad(this);
   });
-  productoRow.find(".increaseBtn").click(function() {
+  productoRow.find(".increaseBtn").click(function () {
     incrementarCantidad(this);
   });
-  productoRow.find(".productosSelect").change(function() {
+  productoRow.find(".productosSelect").change(function () {
     updatePriceAndTotal(this, $(this).closest('.producto-row').find('.quantity-input'), $(this).closest('.producto-row').find('.price-input'));
   });
 
   // Obtener los productos seleccionados en las filas anteriores
   var selectedProducts = [];
-  productosContainer.find('.productosSelect').each(function() {
+  productosContainer.find('.productosSelect').each(function () {
     var selectedProduct = $(this).val();
     if (selectedProduct !== 'null') {
       selectedProducts.push(selectedProduct);
@@ -459,41 +437,13 @@ function agregarProducto(isFirst) {
 
 }
 
-function fillProductSelect(selectElement, excludedProducts) {
-  var apiUrl = "http://localhost:4090/api/Producto/obtenerProductos";
-
-  $.ajax({
-    url: apiUrl,
-    method: "GET",
-    dataType: "json",
-    success: function (data) {
-      selectElement.empty();
-      selectElement.append('<option value="null" disabled>--Selecciona--</option>');
-
-      $.each(data, function (index, producto) {
-        if (!excludedProducts.includes(producto.productoId)) {
-          selectElement.append(
-            '<option value="' + producto.productoId + '" data-price="' + producto.precio + '">' + producto.nombre + '</option>'
-          );
-        }
-      });
-      selectElement.val("null");
-    },
-    error: function (error) {
-      console.error("Error al obtener productos:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Error al cargar productos!",
-      });
-    },
-  });
-}
-
 function updatePriceAndTotal(productSelect, quantityInput, precioInput) {
+  quantityInput = $(quantityInput);
+  precioInput = $(precioInput);
   var selectedOption = productSelect.options[productSelect.selectedIndex];
   var productPrice = parseFloat(selectedOption.dataset.price || 0);
   var quantity = parseFloat(quantityInput.val() || 0);
+
   var rowPrice = productPrice * quantity;
   precioInput.val(rowPrice.toFixed(2));
 
@@ -502,38 +452,41 @@ function updatePriceAndTotal(productSelect, quantityInput, precioInput) {
 
 async function validarCupon(cuponCodigo) {
   return new Promise((resolve, reject) => {
-    var apiUrl = `http://localhost:4090/api/Cupon/obtenerCuponPorId/${cuponCodigo}`;
+    var apiUrl = `http://localhost:4090/api/Cupon/buscarCuponPorCodigo/${cuponCodigo}`;
 
     $.ajax({
       url: apiUrl,
       method: "GET",
       dataType: "json",
     })
-    .done(function (response) {
-      if (response.descuento !== null) {
-        var descuento = response.descuento;
-        appliedDiscount = descuento;
-        recalcularTotal();
-        cuponUsado = true; 
-        checkValidarButtonState();
+      .done(function (response) {
+        if (!response.payload) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Cupón inválido o sin descuento!',
+          });
+          resolve(null);
+        }
+        else {
+          var descuento = response.payload.descuento;
+          cupon = response.payload;
+          console.log('Cupón válido:', cupon);
+          appliedDiscount = descuento;
+          recalcularTotal();
+          cuponUsado = true;
+          checkValidarButtonState();
 
           Swal.fire({
             icon: 'success',
             title: '¡Cupón válido!',
             text: `Se aplicó un descuento de ${descuento}%`,
           });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Cupón inválido o sin descuento!',
-          });
-          reject(new Error("Invalid coupon or no discount"));
         }
       })
       .fail(function (error) {
         console.error("Error validating coupon:", error);
-        reject(error);
+        resolve(null);
       });
   });
 }
@@ -559,7 +512,7 @@ function decrementarCantidad(button) {
 function recalcularTotal() {
   var productRows = document.querySelectorAll(".producto-row");
   var total = 0;
-  productRows.forEach(function(row) {
+  productRows.forEach(function (row) {
     var rowPriceInput = row.querySelector(".price-input");
     var rowPrice = parseFloat(rowPriceInput.value || 0);
     if (!isNaN(rowPrice)) {
@@ -596,26 +549,33 @@ window.onload = function () {
   startOfPage();
 };
 
-function waitForConfirmation() {
-  document.addEventListener("click", function (event) {
-    var target = event.target;
-    if (
-      target &&
-      target.classList.contains("swal2-confirm") &&
-      target.classList.contains("swal2-styled")
-    ) {
-      goToList();
-    }
-  });
-}
+function mostrarMensaje(action, statusCode) {
+  var title, icon, text;
 
-function clearFormFields() {
-  var inputFields = document.querySelectorAll("input, textarea, select");
-  inputFields.forEach(function (field) {
-    field.value = "";
-  });
-}
+  switch (statusCode) {
+    case 200:
+    case 201:
+      title = "Success";
+      icon = "success";
+      text = "Su " + type + " fue " + action + " exitosamente.";
+      break;
+    case 400:
+    case 404:
+    case 500:
+      title = "Error";
+      icon = "error";
+      text = "Existe un problema al " + action + " el " + type + ".";
+      break;
+    default:
+      title = "Error";
+      icon = "error";
+      text = "Ha ocurrido un error inesperado.";
+      break;
+  }
 
-function goBack() {
-  window.history.back();
+  Swal.fire({
+    title: title,
+    icon: icon,
+    text: text,
+  });
 }
