@@ -19,7 +19,7 @@ body {
     background-color: #F01B53;
     border-color: #F01B53;
     font-weight: bold;
-    width: 130px;
+    width: auto;
     border-radius: 0px;
 }
 
@@ -105,3 +105,12 @@ body {
       width: 100%; /* Make the button fill the width of its container */
     }
   }
+
+@media (min-width: 992px){
+    .navbar-expand-lg .navbar-nav {
+    display: contents;
+    }
+    .navbar-expand-lg .navbar-collapse {
+        justify-content: space-around;
+    }
+}
