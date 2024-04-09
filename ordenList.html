@@ -138,7 +138,7 @@
 						const { cliente, orden } = node.allLeafChildren[0].data;
 						return `Orden #${orden.ordenId} - ${cliente.nombre} ${cliente.primerApellido} ${cliente.segundoApellido}`;
 					},
-					headerName: 'Orden', field: 'ordenId',
+					headerName: 'Orden', field: 'orden.ordenId',
 					hide: true, rowGroup: true,
 				},
 				{
