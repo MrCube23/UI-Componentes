@@ -1,11 +1,204 @@
+// ClienteController.js
+
+// Variables globales
 let action = null;
 let type = "cliente";
 
+// Inicio de la página
 async function startOfPage() {
   await GetDataAndPopulateTable();
   let urlId = getIdFromURL();
   if (urlId) GetDataOfSpecificId(urlId);
+  LoadCreateBtn();
+  LoadUpdateBtn();
+  LoadDeleteBtn();
+  LoadCancelBtn();
+}
 
+// CRUD
+
+// Obtener datos y poblar tabla
+async function GetDataAndPopulateTable() {
+  try {
+    const data = await obtenerClientes();
+    var tableBody = $("#dynamicTableBody");
+    tableBody.empty();
+
+    for (var i = 0; i < data.length; i++) {
+      tableBody.append(
+        "<tr>" +
+          '<th scope="row" class="txtId">' +
+          data[i].clienteId +
+          "</th>" +
+          '<td class="txtName">' +
+          data[i].nombre +
+          "</td>" +
+          '<td class="txtName">' +
+          data[i].primerApellido + " " + data[i].segundoApellido +
+          "</td>" +
+          '<td class="txtDescription">' +
+          data[i].email +
+          "</td>" +
+          '<td class="txtPrice">' +
+          data[i].direccion +
+          "</td>" +
+          '<td class="actionDelete"><a class="btnDecoratioStyleMod btnModifyClient" href="clienteModify.html?id=' +
+          data[i].clienteId +
+          '">Actualizar</a> / <a  href="#" class="btnDecoratioStyleDel btnDeleteClient" product-id="' +
+          data[i].clienteId +
+          '">Eliminar</a></td>' +
+          "</tr>"
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Error!",
+    });
+  }
+}
+
+// Validar nuevo cliente
+async function validarNuevoCliente() {
+  var name = document.getElementById('clienteName').value;
+  var clientPRA = document.getElementById('clientePRA').value;
+  var clientSGA = document.getElementById('clienteSGA').value;
+  var mail = document.getElementById('mail').value;
+  var direction = document.getElementById('direction').value;
+
+  if (name.trim() !== '' && clientPRA.trim() !== '' && clientSGA.trim() !== '' && mail.trim() !== '' && direction.trim() !== '') {
+    var nuevoCliente = {
+      segundoApellido: clientSGA,
+      primerApellido: clientPRA,
+      direccion: direction,
+      nombre: name,
+      email: mail
+    };
+
+    const { status } = await crearCliente(nuevoCliente);
+    console.log("Éxito al crear cliente. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("creado", true, type);
+        waitForConfirmationForm();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("creado", false, type);
+      } else {
+        mostrarMensaje("creado", null, type);
+      };   
+
+  } else {
+    Swal.fire({
+      title: "Message",
+      icon: "error",
+      text: "Por favor, complete todos los campos.",
+    });
+  }
+}
+
+// Modificar cliente
+async function modificarCliente() {
+  var id = getIdFromURL();
+  var name = document.getElementById("clienteName").value;
+  var clientPRA = document.getElementById("clientePRA").value;
+  var clientSGA = document.getElementById("clienteSGA").value;
+  var mail = document.getElementById("mail").value;
+  var direction = document.getElementById("direction").value;
+
+  if (
+    name.trim() !== "" &&
+    clientPRA.trim() !== "" &&
+    clientSGA.trim() !== "" &&
+    mail.trim() !== "" &&
+    direction.trim() !== ""
+  ) {
+    var actualizadoCliente = {
+      segundoApellido: clientSGA,
+      primerApellido: clientPRA,
+      direccion: direction,
+      clienteId: id,
+      nombre: name,
+      email: mail,
+    };
+
+    const { status } = await actualizarCliente(actualizadoCliente);
+    console.log("Éxito de la actualización. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("actualizado", true, type);
+        waitForConfirmationForm();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("actualizado", false, type);
+      } else {
+        mostrarMensaje("actualizado", null, type);
+      };   
+
+  } else {
+    Swal.fire({
+      title: "Message",
+      icon: "error",
+      text: "Por favor, complete todos los campos.",
+    });
+  }
+}
+
+// Eliminar cliente
+async function eliminarCliente(id) {
+  const { status } = await eliminarClienteRequest(id);
+    console.log("Éxito de la eliminación. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("eliminado", true, type);
+        waitForConfirmationList();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("eliminado", false, type);
+      } else {
+        mostrarMensaje("eliminado", null, type);
+      };   
+}
+
+// Funciones auxiliares
+
+// Obtener ID desde URL
+function getIdFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("id");
+}
+// Obtener datos de un ID específico
+function GetDataOfSpecificId(selectedProductId) {
+  obtenerClientePorId(selectedProductId)
+    .then((response) => {
+      $("#clienteName").val(response.nombre);
+      $("#clientePRA").val(response.primerApellido);
+      $("#clienteSGA").val(response.segundoApellido);
+      $("#mail").val(response.email);
+      $("#direction").val(response.direccion);
+    })
+    .catch((error) => {
+      console.error("Error fetching client by ID:", error);
+    });
+}
+
+// Cargar botones
+function LoadCreateBtn(){
+  var btnCreateCliente = document.getElementById("btnCreateCliente");
+  if (btnCreateCliente != null)
+    btnCreateCliente.addEventListener("click", function (e) {
+    e.preventDefault();
+    validarNuevoCliente();
+  });
+}
+function LoadUpdateBtn(){
+  var btnUpdateCliente = document.getElementById("btnUpdateCliente");
+  if (btnUpdateCliente != null)
+    btnUpdateCliente.addEventListener("click", function (e) {
+      e.preventDefault();
+      modificarCliente();
+  });
+}
+function LoadDeleteBtn(){
   var btnDeleteClient = document.querySelectorAll(".btnDeleteClient");
   console.log(btnDeleteClient);
   if (btnDeleteClient != null) {
@@ -18,277 +211,39 @@ async function startOfPage() {
     }
   }
 }
-
-function goToList() {
-  window.open("clienteList.html", "_self");
-}
-
-function validarNuevoCliente() {
-  var name = document.getElementById('clienteName').value;
-  var clientPRA = document.getElementById('clientePRA').value;
-  var clientSGA = document.getElementById('clienteSGA').value;
-  var mail = document.getElementById('mail').value;
-  var direction = document.getElementById('direction').value;
-
-  if (name.trim() !== '' && clientPRA.trim() !== '' && clientSGA.trim() !== '' && mail.trim() !== '' && direction.trim() !== '') {
-      var nuevoCliente = {
-        segundoApellido: clientSGA,
-        primerApellido: clientPRA,
-        direccion: direction,
-        nombre: name,
-        email: mail
-      };
-
-      var apiUrl = "http://localhost:4090/api/Cliente/crearCliente";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "POST",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(nuevoCliente),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("creado", 200),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("creado", 201),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("crear", 400);
-        },
-        404: function () {
-          mostrarMensaje("crear", 404);
-        },
-        500: function () {
-          mostrarMensaje("crear", 500);
-        },
-      },
-    });
-  } else {
-    Swal.fire({
-      title: "Message",
-      icon: "error",
-      text: "Por favor, complete todos los campos.",
-    });
-  }
-}
-
-async function GetDataAndPopulateTable() {
-  return new Promise((resolve, reject) => {
-    var apiUrl = "http://localhost:4090/api/Cliente/obtenerClientes";
-
-    $.ajax({
-      url: apiUrl,
-      method: "GET",
-      dataType: "json",
-    })
-      .done(function (data) {
-        var tableBody = $("#dynamicTableBody");
-        tableBody.empty();
-
-        for (var i = 0; i < data.length; i++) {
-          tableBody.append(
-            "<tr>" +
-              '<th scope="row" class="txtId">' +
-              data[i].clienteId +
-              "</th>" +
-              '<td class="txtName">' +
-              data[i].nombre +
-              "</td>" +
-              '<td class="txtName">' +
-              data[i].primerApellido + " " + data[i].segundoApellido +
-              "</td>" +
-              '<td class="txtDescription">' +
-              data[i].email +
-              "</td>" +
-              '<td class="txtPrice">' +
-              data[i].direccion +
-              "</td>" +
-              '<td class="actionDelete"><a class="btnDecoratioStyleMod btnModifyClient" href="clienteModify.html?id=' +
-              data[i].clienteId +
-              '">Actualizar</a> / <a  href="#" class="btnDecoratioStyleDel btnDeleteClient" product-id="' +
-              data[i].clienteId +
-              '">Eliminar</a></td>' +
-              "</tr>"
-          );
-        }
-        resolve();
-      })
-      .fail(function (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Error!",
-        });
-        reject();
-      });
-  });
-}
-
-function eliminarCliente(id) {
-  var apiUrl = `http://localhost:4090/api/Cliente/eliminarCliente/${id}`;
-
-  $.ajax({
-    headers: {
-      Accept: "application/json",
-    },
-    method: "DELETE",
-    url: apiUrl,
-    dataType: "json",
-    statusCode: {
-      200: function () {
-        mostrarMensaje("eliminado", 200), startOfPage();
-      },
-      201: function () {
-        mostrarMensaje("eliminado", 201), startOfPage();
-      },
-      400: function () {
-        mostrarMensaje("eliminar", 400);
-      },
-      404: function () {
-        mostrarMensaje("eliminar", 404);
-      },
-      500: function () {
-        mostrarMensaje("eliminar", 500);
-      },
-    },
-  });
-}
-
-function getIdFromURL() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("id");
-}
-
-function GetDataOfSpecificId(selectedProductId) {
-  var apiUrl = `http://localhost:4090/api/Cliente/obtenerClientePorId/${selectedProductId}`;
-
-  $.ajax({
-    method: "GET",
-    url: apiUrl,
-    success: function (response) {
-      $("#clienteName").val(response.nombre);
-      $("#clientePRA").val(response.primerApellido);
-      $("#clienteSGA").val(response.segundoApellido);
-      $("#mail").val(response.email);
-      $("#direction").val(response.direccion);
-    },
-    error: function (error) {
-      console.error(error);
-    },
-  });
-}
-
-function modificarCliente() {
-  var id = getIdFromURL();
-  var name = document.getElementById('clienteName').value;
-  var clientPRA = document.getElementById('clientePRA').value;
-  var clientSGA = document.getElementById('clienteSGA').value;
-  var mail = document.getElementById('mail').value;
-  var direction = document.getElementById('direction').value;
-
-  if (name.trim() !== '' && clientPRA.trim() !== '' && clientSGA.trim() !== '' && mail.trim() !== '' && direction.trim() !== '') {
-      var actualizarCliente = {
-        segundoApellido: clientSGA,
-        primerApellido: clientPRA,
-        direccion: direction,
-        clienteId: id,
-        nombre: name,
-        email: mail
-      };
-
-    var apiUrl = "http://localhost:4090/api/Cliente/actualizarCliente";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "PUT",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(actualizarCliente),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("actualizado", 200),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("actualizado", 201),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("actualizar", 400);
-        },
-        404: function () {
-          mostrarMensaje("actualizar", 404);
-        },
-        500: function () {
-          mostrarMensaje("actualizar", 500);
-        },
-      },
-    });
-  } else {
-    Swal.fire({
-      title: "Message",
-      icon: "error",
-      text: "Por favor, complete todos los campos.",
-    });
-  }
-}
-
-var btnCreateCliente = document.getElementById("btnCreateCliente");
-if (btnCreateCliente != null)
-  btnCreateCliente.addEventListener("click", function (e) {
+function LoadCancelBtn(){
+  var btnCancel = document.getElementById("btnCancel");
+  if (btnCancel != null)
+    btnCancel.addEventListener("click", function (e) {
     e.preventDefault();
-    validarNuevoCliente();
+    window.history.back();
   });
+}
 
-var btnUpdateCliente = document.getElementById("btnUpdateCliente");
-if (btnUpdateCliente != null)
-btnUpdateCliente.addEventListener("click", function (e) {
-    e.preventDefault();
-    modificarCliente();
-  });
+// Recargar datos de la página
+function DataReload() {
+  startOfPage();
+}
 
-var btnCancel = document.getElementById("btnCancel");
-if (btnCancel != null)
-btnCancel.addEventListener("click", function (e) {
-    e.preventDefault();
-    goBack();
-  });
-
-function mostrarMensaje(action, statusCode) {
+// Mostrar mensaje según acción y estado
+function mostrarMensaje(action, statusCode, type) {
   var title, icon, text;
 
   switch (statusCode) {
-    case 200:
-    case 201:
-      title = "Success";
+    case true:
+      title = "Éxito";
       icon = "success";
-      text = "Su " + type + " fue " + action + " exitosamente.";
+      text = "El " + type + " se " + action + " correctamente.";
       break;
-    case 400:
-    case 404:
-    case 500:
+    case false:
       title = "Error";
       icon = "error";
-      text = "Existe un problema al " + action + " el " + type + ".";
+      text = "Hubo un problema al " + action + " el " + type + ".";
       break;
     default:
-      title = "Error";
+      title = "Error de servidor";
       icon = "error";
-      text = "Ha ocurrido un error inesperado.";
+      text = "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más tarde.";
       break;
   }
 
@@ -296,14 +251,12 @@ function mostrarMensaje(action, statusCode) {
     title: title,
     icon: icon,
     text: text,
+    confirmButtonText: "Aceptar",
   });
 }
 
-window.onload = function () {
-  startOfPage();
-};
-
-function waitForConfirmation() {
+// Esperar confirmación después de una transacción (crear o actualizar)
+function waitForConfirmationForm() {
   document.addEventListener("click", function (event) {
     const target = event.target;
     if (
@@ -311,18 +264,27 @@ function waitForConfirmation() {
       target.classList.contains("swal2-confirm") &&
       target.classList.contains("swal2-styled")
     ) {
-      goToList();
+      // Redireccionar a clienteList.html en la misma pestaña
+      window.location.href = "clienteList.html";
     }
   });
 }
 
-function clearFormFields() {
-  const inputFields = document.querySelectorAll("input, textarea");
-  inputFields.forEach(function (field) {
-    field.value = "";
+// Esperar confirmación después de eliminar
+function waitForConfirmationList() {
+  document.addEventListener("click", function (event) {
+    const target = event.target;
+    if (
+      target &&
+      target.classList.contains("swal2-confirm") &&
+      target.classList.contains("swal2-styled")
+    ) {
+      DataReload();
+    }
   });
 }
 
-function goBack() {
-  window.history.back();
-}
+// Inicialización de la página
+window.onload = function () {
+  startOfPage();
+};
