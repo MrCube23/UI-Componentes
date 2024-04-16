@@ -1,35 +1,35 @@
-// ClienteService.js
+// EtiquetaService.js
 
-const apiUrl = "http://localhost:4090/api/Cliente/";
+const apiUrl = "http://localhost:4090/api/Etiqueta/";
 
-// Obtener todos los clientes
-async function obtenerClientes() {
+// Obtener todas las etiquetas
+async function obtenerEtiquetas() {
   return $.ajax({
-    url: apiUrl + "obtenerClientes",
+    url: apiUrl + "obtenerEtiquetas",
     method: "GET",
     dataType: "json",
   });
 }
 
-// Obtener cliente por ID
-async function obtenerClientePorId(id) {
+// Obtener etiqueta por ID
+async function obtenerEtiquetaPorId(id) {
   return $.ajax({
     method: "GET",
-    url: apiUrl + `obtenerClientePorId/${id}`,
+    url: apiUrl + `obtenerEtiquetaPorId/${id}`,
   });
 }
 
-// Crear un nuevo cliente
-async function crearCliente(nuevoCliente) {
+// Crear una nueva etiqueta
+async function crearEtiqueta(nuevaEtiqueta) {
   return new Promise((resolve, reject) => {
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "POST",
-      url: apiUrl + "crearCliente",
+      url: apiUrl + "crearEtiqueta",
       dataType: "text json",
-      data: JSON.stringify(nuevoCliente),
+      data: JSON.stringify(nuevaEtiqueta),
       hasContent: true,
     })
       .done((response, textStatus, xhr) => {
@@ -45,17 +45,17 @@ async function crearCliente(nuevoCliente) {
   });
 }
 
-// Actualizar cliente existente
-async function actualizarCliente(actualizadoCliente) {
+// Actualizar etiqueta existente
+async function actualizarEtiqueta(actualizadaEtiqueta) {
   return new Promise((resolve, reject) => {
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "PUT",
-      url: apiUrl + "actualizarCliente",
+      url: apiUrl + "actualizarEtiqueta",
       dataType: "json",
-      data: JSON.stringify(actualizadoCliente),
+      data: JSON.stringify(actualizadaEtiqueta),
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });
@@ -70,12 +70,12 @@ async function actualizarCliente(actualizadoCliente) {
   });
 }
 
-// Eliminar cliente por ID
-async function eliminarClienteRequest(id) {
+// Eliminar etiqueta por ID
+async function eliminarEtiquetaRequest(id) {
   return new Promise((resolve, reject) => {
     $.ajax({
       method: "DELETE",
-      url: apiUrl + `eliminarCliente/${id}`,
+      url: apiUrl + `eliminarEtiqueta/${id}`,
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });

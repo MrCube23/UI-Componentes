@@ -5,7 +5,179 @@ async function startOfPage() {
   await GetDataAndPopulateTable();
   let urlId = getIdFromURL();
   if (urlId) GetDataOfSpecificId(urlId);
+  LoadCreateBtn();
+  LoadUpdateBtn();
+  LoadDeleteBtn();
+  LoadCancelBtn();
+}
 
+function goToList() {
+  window.open("etiquetaList.html", "_self");
+}
+
+// CRUD
+
+// Obtener datos y poblar tabla
+async function GetDataAndPopulateTable() {
+  try {
+    const data = await obtenerEtiquetas();
+    var tableBody = $("#dynamicTableBody");
+    tableBody.empty();
+
+    for (var i = 0; i < data.length; i++) {
+      tableBody.append(
+        "<tr>" +
+          '<th scope="row" class="txtId">' +
+          data[i].etiquetaId +
+          "</th>" +
+          '<td class="txtName">' +
+          data[i].nombre +
+          "</td>" +
+          '<td class="txtName">' +
+          data[i].descripcion +
+          "</td>" +
+          '<td class="txtDescription">' +
+          data[i].fechaCreacion +
+          "</td>" +
+          '<td class="actionDelete"><a class="btnDecoratioStyleMod btnModifyTag" href="etiquetaModify.html?id=' +
+          data[i].etiquetaId +
+          '">Actualizar</a> / <a  href="#" class="btnDecoratioStyleDel btnDeleteTag" product-id="' +
+          data[i].etiquetaId +
+          '">Eliminar</a></td>' +
+          "</tr>"
+      );
+    }
+  } catch (error) {
+    console.error("Error al obtener etiquetas:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Hubo un error al cargar los datos.",
+      confirmButtonText: "Aceptar",
+    });
+  }
+}
+
+// Validar nueva etiqueta
+async function validarNuevaEtiqueta() {
+  var name = document.getElementById('etiquetaName').value;
+  var description = document.getElementById('etiquetaDesc').value;
+
+  if (name.trim() !== '' && description.trim() !== '') {
+    var nuevaEtiqueta = {
+      fechaCreacion: new Date().toISOString().slice(0, 10),
+      descripcion: description,
+      nombre: name
+    };
+
+    const { status } = await crearEtiqueta(nuevaEtiqueta);
+    console.log("Éxito al crear etiqueta. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("creado", true, type);
+        waitForConfirmationForm();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("creado", false, type);
+      } else {
+        mostrarMensaje("creado", null, type);
+      };   
+
+  } else {
+    Swal.fire({
+      title: "Message",
+      icon: "error",
+      text: "Por favor, complete todos los campos.",
+    });
+  }
+}
+
+// Modificar etiqueta
+async function modificarEtiqueta() {
+  var id = getIdFromURL();
+  var name = document.getElementById('etiquetaName').value;
+  var description = document.getElementById('etiquetaDesc').value;
+
+  if (name.trim() !== '' && description.trim() !== '') {
+      var etiquetaActualizada = {
+        fechaCreacion: new Date().toISOString().slice(0, 10),
+        descripcion: description,
+        etiquetaId: id,
+        nombre: name
+      };
+
+    const { status } = await actualizarEtiqueta(etiquetaActualizada);
+    console.log("Éxito de la actualización. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("actualizado", true, type);
+        waitForConfirmationForm();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("actualizado", false, type);
+      } else {
+        mostrarMensaje("actualizado", null, type);
+      };   
+
+  } else {
+    Swal.fire({
+      title: "Message",
+      icon: "error",
+      text: "Por favor, complete todos los campos.",
+    });
+  }
+}
+
+// Eliminar etiqueta
+async function eliminarEtiqueta(id) {
+  const { status } = await eliminarEtiquetaRequest(id);
+    console.log("Éxito de la eliminación. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("eliminado", true, type);
+        waitForConfirmationList();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("eliminado", false, type);
+      } else {
+        mostrarMensaje("eliminado", null, type);
+      };   
+}
+
+// Funciones auxiliares
+
+// Obtener ID desde URL
+function getIdFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("id");
+}
+// Obtener datos de un ID específico
+function GetDataOfSpecificId(selectedProductId) {
+  obtenerEtiquetaPorId(selectedProductId)
+    .then((response) => {
+      $("#etiquetaName").val(response.nombre);
+      $("#etiquetaDesc").val(response.descripcion);
+    })
+    .catch((error) => {
+      console.error("Error al obtener etiqueta por ID:", error);
+    });
+}
+
+// Cargar botones
+function LoadCreateBtn(){
+  var btnCreateEtiqueta = document.getElementById("btnCreateEtiqueta");
+  if (btnCreateEtiqueta != null)
+    btnCreateEtiqueta.addEventListener("click", function (e) {
+    e.preventDefault();
+    validarNuevaEtiqueta();
+  });
+}
+function LoadUpdateBtn(){
+  var btnUpdateEtiqueta = document.getElementById("btnUpdateEtiqueta");
+  if (btnUpdateEtiqueta != null)
+    btnUpdateEtiqueta.addEventListener("click", function (e) {
+      e.preventDefault();
+      modificarEtiqueta();
+  });
+}
+function LoadDeleteBtn(){
   var btnDeleteTag = document.querySelectorAll(".btnDeleteTag");
   console.log(btnDeleteTag);
   if (btnDeleteTag != null) {
@@ -18,261 +190,39 @@ async function startOfPage() {
     }
   }
 }
-
-function goToList() {
-  window.open("etiquetaList.html", "_self");
-}
-
-function validarNuevaEtiqueta() {
-  var name = document.getElementById('etiquetaName').value;
-  var description = document.getElementById('etiquetaDesc').value;
-
-  if (name.trim() !== '' && description.trim() !== '') {
-      var nuevaEtiqueta = {
-        fechaCreacion: new Date().toISOString().slice(0, 10),
-        descripcion: description,
-        nombre: name
-      };
-
-      var apiUrl = "http://localhost:4090/api/Etiqueta/crearEtiqueta";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "POST",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(nuevaEtiqueta),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("creado", 200),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("creado", 201),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("crear", 400);
-        },
-        404: function () {
-          mostrarMensaje("crear", 404);
-        },
-        500: function () {
-          mostrarMensaje("crear", 500);
-        },
-      },
-    });
-  } else {
-    Swal.fire({
-      title: "Message",
-      icon: "error",
-      text: "Por favor, complete todos los campos.",
-    });
-  }
-}
-
-async function GetDataAndPopulateTable() {
-  return new Promise((resolve, reject) => {
-    var apiUrl = "http://localhost:4090/api/Etiqueta/obtenerEtiquetas";
-
-    $.ajax({
-      url: apiUrl,
-      method: "GET",
-      dataType: "json",
-    })
-      .done(function (data) {
-        var tableBody = $("#dynamicTableBody");
-        tableBody.empty();
-
-        for (var i = 0; i < data.length; i++) {
-          tableBody.append(
-            "<tr>" +
-              '<th scope="row" class="txtId">' +
-              data[i].etiquetaId +
-              "</th>" +
-              '<td class="txtName">' +
-              data[i].nombre +
-              "</td>" +
-              '<td class="txtName">' +
-              data[i].descripcion +
-              "</td>" +
-              '<td class="txtDescription">' +
-              data[i].fechaCreacion +
-              "</td>" +
-              '<td class="actionDelete"><a class="btnDecoratioStyleMod btnModifyTag" href="etiquetaModify.html?id=' +
-              data[i].etiquetaId +
-              '">Actualizar</a> / <a  href="#" class="btnDecoratioStyleDel btnDeleteTag" product-id="' +
-              data[i].etiquetaId +
-              '">Eliminar</a></td>' +
-              "</tr>"
-          );
-        }
-        resolve();
-      })
-      .fail(function (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Error!",
-        });
-        reject();
-      });
-  });
-}
-
-function eliminarEtiqueta(id) {
-  var apiUrl = `http://localhost:4090/api/Etiqueta/eliminarEtiqueta/${id}`;
-
-  $.ajax({
-    headers: {
-      Accept: "application/json",
-    },
-    method: "DELETE",
-    url: apiUrl,
-    dataType: "json",
-    statusCode: {
-      200: function () {
-        mostrarMensaje("eliminado", 200), startOfPage();
-      },
-      201: function () {
-        mostrarMensaje("eliminado", 201), startOfPage();
-      },
-      400: function () {
-        mostrarMensaje("eliminar", 400);
-      },
-      404: function () {
-        mostrarMensaje("eliminar", 404);
-      },
-      500: function () {
-        mostrarMensaje("eliminar", 500);
-      },
-    },
-  });
-}
-
-function getIdFromURL() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("id");
-}
-
-function GetDataOfSpecificId(selectedProductId) {
-  var apiUrl = `http://localhost:4090/api/Etiqueta/obtenerEtiquetaPorId/${selectedProductId}`;
-
-  $.ajax({
-    method: "GET",
-    url: apiUrl,
-    success: function (response) {
-      $("#etiquetaName").val(response.nombre);
-      $("#etiquetaDesc").val(response.descripcion);
-    },
-    error: function (error) {
-      console.error(error);
-    },
-  });
-}
-
-function modificarEtiqueta() {
-  var id = getIdFromURL();
-  var name = document.getElementById('etiquetaName').value;
-  var description = document.getElementById('etiquetaDesc').value;
-
-  if (name.trim() !== '' && description.trim() !== '') {
-      var actualizarEtiqueta = {
-        fechaCreacion: new Date().toISOString().slice(0, 10),
-        descripcion: description,
-        etiquetaId: id,
-        nombre: name
-      };
-
-    var apiUrl = "http://localhost:4090/api/Etiqueta/actualizarEtiqueta";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "PUT",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(actualizarEtiqueta),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("actualizado", 200),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("actualizado", 201),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("actualizar", 400);
-        },
-        404: function () {
-          mostrarMensaje("actualizar", 404);
-        },
-        500: function () {
-          mostrarMensaje("actualizar", 500);
-        },
-      },
-    });
-  } else {
-    Swal.fire({
-      title: "Message",
-      icon: "error",
-      text: "Por favor, complete todos los campos.",
-    });
-  }
-}
-
-var btnCreateEtiqueta = document.getElementById("btnCreateEtiqueta");
-if (btnCreateEtiqueta != null)
-  btnCreateEtiqueta.addEventListener("click", function (e) {
+function LoadCancelBtn(){
+  var btnCancel = document.getElementById("btnCancel");
+  if (btnCancel != null)
+    btnCancel.addEventListener("click", function (e) {
     e.preventDefault();
-    validarNuevaEtiqueta();
+    window.history.back();
   });
+}
 
-var btnUpdateEtiqueta = document.getElementById("btnUpdateEtiqueta");
-if (btnUpdateEtiqueta != null)
-btnUpdateEtiqueta.addEventListener("click", function (e) {
-    e.preventDefault();
-    modificarEtiqueta();
-  });
+// Recargar datos de la página
+function DataReload() {
+  startOfPage();
+}
 
-var btnCancel = document.getElementById("btnCancel");
-if (btnCancel != null)
-btnCancel.addEventListener("click", function (e) {
-    e.preventDefault();
-    goBack();
-  });
-
-function mostrarMensaje(action, statusCode) {
+// Mostrar mensaje según acción y estado
+function mostrarMensaje(action, statusCode, type) {
   var title, icon, text;
 
   switch (statusCode) {
-    case 200:
-    case 201:
-      title = "Success";
+    case true:
+      title = "Éxito";
       icon = "success";
-      text = "Su " + type + " fue " + action + " exitosamente.";
+      text = "La " + type + " se " + action + " correctamente.";
       break;
-    case 400:
-    case 404:
-    case 500:
+    case false:
       title = "Error";
       icon = "error";
-      text = "Existe un problema al " + action + " el " + type + ".";
+      text = "Hubo un problema al " + action + " la " + type + ".";
       break;
     default:
-      title = "Error";
+      title = "Error de servidor";
       icon = "error";
-      text = "Ha ocurrido un error inesperado.";
+      text = "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más tarde.";
       break;
   }
 
@@ -280,14 +230,12 @@ function mostrarMensaje(action, statusCode) {
     title: title,
     icon: icon,
     text: text,
+    confirmButtonText: "Aceptar",
   });
 }
 
-window.onload = function () {
-  startOfPage();
-};
-
-function waitForConfirmation() {
+// Esperar confirmación después de una transacción (crear o actualizar)
+function waitForConfirmationForm() {
   document.addEventListener("click", function (event) {
     const target = event.target;
     if (
@@ -295,18 +243,27 @@ function waitForConfirmation() {
       target.classList.contains("swal2-confirm") &&
       target.classList.contains("swal2-styled")
     ) {
-      goToList();
+      // Redireccionar a etiquetaList.html en la misma pestaña
+      window.location.href = "etiquetaList.html";
     }
   });
 }
 
-function clearFormFields() {
-  const inputFields = document.querySelectorAll("input, textarea");
-  inputFields.forEach(function (field) {
-    field.value = "";
+// Esperar confirmación después de eliminar
+function waitForConfirmationList() {
+  document.addEventListener("click", function (event) {
+    const target = event.target;
+    if (
+      target &&
+      target.classList.contains("swal2-confirm") &&
+      target.classList.contains("swal2-styled")
+    ) {
+      DataReload();
+    }
   });
 }
 
-function goBack() {
-  window.history.back();
-}
+// Inicialización de la página
+window.onload = function () {
+  startOfPage();
+};

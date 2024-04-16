@@ -51,11 +51,12 @@ async function GetDataAndPopulateTable() {
       );
     }
   } catch (error) {
-    console.error("Error fetching clients:", error);
+    console.error("Error al obtener clientes:", error);
     Swal.fire({
       icon: "error",
       title: "Oops...",
-      text: "Error!",
+      text: "Hubo un error al cargar los datos.",
+      confirmButtonText: "Aceptar",
     });
   }
 }
@@ -177,7 +178,7 @@ function GetDataOfSpecificId(selectedProductId) {
       $("#direction").val(response.direccion);
     })
     .catch((error) => {
-      console.error("Error fetching client by ID:", error);
+      console.error("Error al obtener cliente por ID:", error);
     });
 }
 
