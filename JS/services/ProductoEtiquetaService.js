@@ -1,35 +1,35 @@
-// CuponService.js
+// ProductoEtiquetaService.js
 
-const apiUrlCupon = "http://localhost:4090/api/Cupon/";
+const apiUrlProductoEtiqueta = "http://localhost:4090/api/Producto_Etiqueta/";
 
-// Obtener todos los cupones
-async function obtenerCupones() {
+// Obtener todas las relaciones producto-etiqueta
+async function obtenerProductoEtiquetas() {
   return $.ajax({
-    url: apiUrlCupon + "obtenerCupones",
+    url: apiUrlProductoEtiqueta + "obtenerProductoEtiquetas",
     method: "GET",
     dataType: "json",
   });
 }
 
-// Obtener cupón por ID
-async function obtenerCuponPorId(id) {
+// Obtener una relación producto-etiqueta por ID
+async function obtenerProductoEtiquetaPorId(id) {
   return $.ajax({
     method: "GET",
-    url: apiUrlCupon + `obtenerCuponPorId/${id}`,
+    url: apiUrlProductoEtiqueta + `obtenerProductoEtiquetaPorId/${id}`,
   });
 }
 
-// Crear un nuevo cupón
-async function crearCupon(nuevoCupon) {
+// Crear una nueva relación producto-etiqueta
+async function crearProductoEtiqueta(nuevaRelacion) {
   return new Promise((resolve, reject) => {
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "POST",
-      url: apiUrlCupon + "crearCupon",
+      url: apiUrlProductoEtiqueta + "crearProductoEtiqueta",
       dataType: "text json",
-      data: JSON.stringify(nuevoCupon),
+      data: JSON.stringify(nuevaRelacion),
       hasContent: true,
     })
       .done((response, textStatus, xhr) => {
@@ -45,17 +45,17 @@ async function crearCupon(nuevoCupon) {
   });
 }
 
-// Actualizar cupón existente
-async function actualizarCupon(actualizadoCupon) {
+// Actualizar una relación producto-etiqueta existente
+async function actualizarProductoEtiqueta(actualizadaRelacion) {
   return new Promise((resolve, reject) => {
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "PUT",
-      url: apiUrlCupon + "actualizarCupon",
+      url: apiUrlProductoEtiqueta + "actualizarProductoEtiqueta",
       dataType: "json",
-      data: JSON.stringify(actualizadoCupon),
+      data: JSON.stringify(actualizadaRelacion),
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });
@@ -70,12 +70,12 @@ async function actualizarCupon(actualizadoCupon) {
   });
 }
 
-// Eliminar cupón por ID
-async function eliminarCuponRequest(id) {
+// Eliminar una relación producto-etiqueta por ID
+async function eliminarProductoEtiquetaRequest(id) {
   return new Promise((resolve, reject) => {
     $.ajax({
       method: "DELETE",
-      url: apiUrlCupon + `eliminarCupon/${id}`,
+      url: apiUrlProductoEtiqueta + `eliminarProductoEtiqueta/${id}`,
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });

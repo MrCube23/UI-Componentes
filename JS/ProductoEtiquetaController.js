@@ -1,106 +1,88 @@
+// ProductoEtiquetaController.js
+
 let action = null;
 let type = "relacion";
 
 async function startOfPage() {
-  populateSelects();
-  await GetDataAndPopulateTable();
+  await Promise.all([populateSelects(), GetDataAndPopulateTable()]);
   let urlId = getIdFromURL();
-  if (urlId) GetDataOfSpecificId(urlId);
-
-  var btnDeleteProTag = document.querySelectorAll(".btnDeleteProTag");
-  console.log(btnDeleteProTag);
-  if (btnDeleteProTag != null) {
-    for (var i = 0; i < btnDeleteProTag.length; i++) {
-      btnDeleteProTag[i].addEventListener("click", function (e) {
-        e.preventDefault();
-        var productEtiqId = this.getAttribute("product-id");
-        eliminarProductoEtiqueta(productEtiqId);
-      });
-    }
-  }
+  if (urlId) await GetDataOfSpecificId(urlId);
+  LoadCreateBtn();
+  LoadUpdateBtn();
+  LoadDeleteBtn();
+  LoadCancelBtn();
 }
 
 function goToList() {
   window.open("productoetiquetaList.html", "_self");
 }
 
-function callINFEtiqueta(id) {
-  return new Promise((resolve, reject) => {
-    var apiURL = `http://localhost:4090/api/Etiqueta/obtenerEtiquetaPorId/${id}`;
-    $.ajax({
-      method: "GET",
-      url: apiURL,
-      success: function (response) {
-        resolve(response.nombre);
-      },
-      error: function (error) {
-        reject(error);
-      },
+// CRUD
+
+// Obtener datos y poblar tabla
+async function GetDataAndPopulateTable() {
+  try {
+    const data = await obtenerProductoEtiquetas();
+    const tableBody = $("#dynamicTableBody");
+    tableBody.empty();
+
+    const rows = [];
+
+    for (const item of data) {
+      const etiquetaNombrePromise = obtenerEtiquetaPorId(item.etiquetaId).then(res => res.nombre);
+      const productoNombrePromise = obtenerProductoPorId(item.productoId).then(res => res.nombre);
+
+      const [etiquetaNombre, productoNombre] = await Promise.all([etiquetaNombrePromise, productoNombrePromise]);
+
+      const row = $("<tr>").append(
+        $("<th>", { scope: "row", class: "txtId", text: item.detalleId }),
+        $("<td>", { class: "txtEtiquetaId", text: etiquetaNombre }),
+        $("<td>", { class: "txtProductoId", text: productoNombre }),
+        $("<td>", { class: "cantidad", text: item.cantidad }),
+        $("<td>", { class: "actionDelete" }).append(
+          $("<a>", { class: "btnDecoratioStyleMod btnModifyProTag", href: `productoetiquetaModify.html?id=${item.detalleId}`, text: "Actualizar" }),
+          " / ",
+          $("<a>", { href: "#", class: "btnDecoratioStyleDel btnDeleteProTag", "product-id": item.detalleId, text: "Eliminar" })
+        )
+      );
+
+      rows.push(row);
+    }
+
+    tableBody.append(rows);
+  } catch (error) {
+    console.error("Error al obtener relaciones producto-etiqueta:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Hubo un error al cargar los datos.",
+      confirmButtonText: "Aceptar",
     });
-  });
+  }
 }
 
-function callINFProducto(id) {
-  return new Promise((resolve, reject) => {
-    var apiURL = `http://localhost:4090/api/Producto/obtenerProductoPorId/${id}`;
-    $.ajax({
-      method: "GET",
-      url: apiURL,
-      success: function (response) {
-        resolve(response.nombre);
-      },
-      error: function (error) {
-        reject(error);
-      },
-    });
-  });
-}
-
-function validarNuevaAssignacion() {
-  var etiqueta = document.getElementById('etiquetasSelect').value;
-  var producto = document.getElementById('productosSelect').value;
-  var cantidad = document.getElementById('amountOfProducts').value;
+// Validar nueva asignación
+async function validarNuevaAssignacion() {
+  const etiqueta = document.getElementById('etiquetasSelect').value;
+  const producto = document.getElementById('productosSelect').value;
+  const cantidad = document.getElementById('amountOfProducts').value;
 
   if (cantidad.trim() !== '') {
-      var nuevaAssignacion = {
-        etiquetaId: etiqueta,
-        productoId: producto,
-        cantidad: cantidad
-      };
+    const nuevaAssignacion = { etiquetaId: etiqueta, productoId: producto, cantidad: cantidad };
 
-      var apiUrl = "http://localhost:4090/api/Producto_Etiqueta/crearProductoEtiqueta";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "POST",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(nuevaAssignacion),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("creada", 200),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("creada", 201),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("crear", 400);
-        },
-        404: function () {
-          mostrarMensaje("crear", 404);
-        },
-        500: function () {
-          mostrarMensaje("crear", 500);
-        },
-      },
-    });
+    try {
+      const { status } = await crearProductoEtiqueta(nuevaAssignacion);
+      if (status == 200 || status == 201) {
+        mostrarMensaje("creada", true, type);
+        waitForConfirmationForm();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("creada", false, type);
+      } else {
+        mostrarMensaje("creada", null, type);
+      }
+    } catch (error) {
+      console.error("Error al crear relación producto-etiqueta:", error);
+    }
   } else {
     Swal.fire({
       title: "Message",
@@ -110,193 +92,54 @@ function validarNuevaAssignacion() {
   }
 }
 
-async function GetDataAndPopulateTable() {
-  return new Promise((resolve, reject) => {
-    var apiUrl = "http://localhost:4090/api/Producto_Etiqueta/obtenerProductoEtiquetas";
-
-    $.ajax({
-      url: apiUrl,
-      method: "GET",
-      dataType: "json",
-    })
-    .done(async function (data) {
-      var tableBody = $("#dynamicTableBody");
-      tableBody.empty();
-
-      var requests = [];
-
-      for (var i = 0; i < data.length; i++) {
-        var etiquetaRequest = callINFEtiqueta(data[i].etiquetaId);
-        var productoRequest = callINFProducto(data[i].productoId);
-        
-        requests.push(etiquetaRequest);
-        requests.push(productoRequest);
-      }
-
-      var responses = await Promise.all(requests);
-
-      for (var i = 0; i < responses.length; i += 2) {
-        var etiquetaName = responses[i];
-        var productoName = responses[i + 1];
-
-        tableBody.append(
-          "<tr>" +
-          '<th scope="row" class="txtId">' +
-          data[i / 2].detalleId +
-          "</th>" +
-          '<td class="txtEtiquetaId">' +
-          etiquetaName +
-          "</td>" +
-          '<td class="txtProductoId">' +
-          productoName +
-          "</td>" +
-          '<td class="cantidad">' +
-          data[i / 2].cantidad +
-          "</td>" +
-          '<td class="actionDelete"><a class="btnDecoratioStyleMod btnModifyProTag" href="productoetiquetaModify.html?id=' +
-          data[i / 2].detalleId +
-          '">Actualizar</a> / <a  href="#" class="btnDecoratioStyleDel btnDeleteProTag" product-id="' +
-          data[i / 2].detalleId +
-          '">Eliminar</a></td>' +
-          "</tr>"
-        );
-      }
-
-      resolve();
-    })
-    .fail(function (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Error!",
-      });
-      reject();
-    });
-  });
-}
-
-
-
-function eliminarProductoEtiqueta(id) {
-  var apiUrl = `http://localhost:4090/api/Producto_Etiqueta/eliminarProductoEtiqueta/${id}`;
-
-  $.ajax({
-    headers: {
-      Accept: "application/json",
-    },
-    method: "DELETE",
-    url: apiUrl,
-    dataType: "json",
-    statusCode: {
-      200: function () {
-        mostrarMensaje("eliminada", 200), startOfPage();
-      },
-      201: function () {
-        mostrarMensaje("eliminada", 201), startOfPage();
-      },
-      400: function () {
-        mostrarMensaje("eliminar", 400);
-      },
-      404: function () {
-        mostrarMensaje("eliminar", 404);
-      },
-      500: function () {
-        mostrarMensaje("eliminar", 500);
-      },
-    },
-  });
-}
-
-function getIdFromURL() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("id");
-}
-
 async function GetDataOfSpecificId(selectedProductId) {
-  var apiUrl = `http://localhost:4090/api/Producto_Etiqueta/obtenerProductoEtiquetaPorId/${selectedProductId}`;
-
   try {
-    var response = await $.ajax({
-      method: "GET",
-      url: apiUrl,
-    });
+    const response = await obtenerProductoEtiquetaPorId(selectedProductId);
+    const etiquetaNombre = await obtenerEtiquetaPorId(response.etiquetaId).then(res => res.nombre);
+    const productoNombre = await obtenerProductoPorId(response.productoId).then(res => res.nombre);
 
-    var etiquetaName = await callINFEtiqueta(response.etiquetaId);
-    var productoName = await callINFProducto(response.productoId);
+    const etiquetasSelect = $("#etiquetasSelect");
+    const productosSelect = $("#productosSelect");
 
-    var etiquetasSelect = $("#etiquetasSelect");
-    var productosSelect = $("#productosSelect");
+    // Actualizar selects si las opciones ya existen, de lo contrario agregarlas
+    etiquetasSelect.find(`option[value="${response.etiquetaId}"]`).length
+      ? etiquetasSelect.find(`option[value="${response.etiquetaId}"]`).text(etiquetaNombre)
+      : etiquetasSelect.append(`<option value="${response.etiquetaId}">${etiquetaNombre}</option>`);
 
-    var etiquetaOption = etiquetasSelect.find(`option[value="${response.etiquetaId}"]`);
-    if (etiquetaOption.length) {
-      etiquetaOption.text(etiquetaName);
-    } else {
-      etiquetasSelect.append(`<option value="${response.etiquetaId}">${etiquetaName}</option>`);
-    }
-
-    var productoOption = productosSelect.find(`option[value="${response.productoId}"]`);
-    if (productoOption.length) {
-      productoOption.text(productoName);
-    } else {
-      productosSelect.append(`<option value="${response.productoId}">${productoName}</option>`);
-    }
+    productosSelect.find(`option[value="${response.productoId}"]`).length
+      ? productosSelect.find(`option[value="${response.productoId}"]`).text(productoNombre)
+      : productosSelect.append(`<option value="${response.productoId}">${productoNombre}</option>`);
 
     etiquetasSelect.val(response.etiquetaId);
     productosSelect.val(response.productoId);
-
     $("#amountOfProducts").val(response.cantidad);
   } catch (error) {
     console.error(error);
   }
 }
 
-function modificarProductoEtiqueta() {
-  var id = getIdFromURL();
-  var etiqueta = document.getElementById('etiquetasSelect').value;
-  var producto = document.getElementById('productosSelect').value;
-  var cantidad = document.getElementById('amountOfProducts').value;
+async function modificarProductoEtiqueta() {
+  const id = getIdFromURL();
+  const etiqueta = document.getElementById('etiquetasSelect').value;
+  const producto = document.getElementById('productosSelect').value;
+  const cantidad = document.getElementById('amountOfProducts').value;
 
   if (cantidad.trim() !== '') {
-      var actualizarAssignacion = {
-        productoId: id,
-        etiquetaId: etiqueta,
-        productoId: producto,
-        cantidad: cantidad
-      };
-
-    var apiUrl = "http://localhost:4090/api/Producto_Etiqueta/actualizarProductoEtiqueta";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "PUT",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(actualizarAssignacion),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("actualizada", 200),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("actualizada", 201),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("actualizar", 400);
-        },
-        404: function () {
-          mostrarMensaje("actualizar", 404);
-        },
-        500: function () {
-          mostrarMensaje("actualizar", 500);
-        },
-      },
-    });
+    var actualizarAssignacion = { detalleId: id, etiquetaId: etiqueta, productoId: producto, cantidad: cantidad };
+    try {
+      console.log(actualizarAssignacion);
+      const { status } = await actualizarProductoEtiqueta(actualizarAssignacion);
+      if (status == 200 || status == 201) {
+        mostrarMensaje("actualizada", true, type);
+        waitForConfirmationForm();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("actualizada", false, type);
+      } else {
+        mostrarMensaje("actualizada", null, type);
+      }
+    } catch (error) {
+      console.error("Error al actualizar relación producto-etiqueta:", error);
+    }
   } else {
     Swal.fire({
       title: "Message",
@@ -306,110 +149,179 @@ function modificarProductoEtiqueta() {
   }
 }
 
-function GetDataAndPopulateSelectEti() {
-    var apiUrl = "http://localhost:4090/api/Etiqueta/obtenerEtiquetas";
+async function populateSelects() {
+  try {
+    const [etiquetasData, productosData] = await Promise.all([
+      obtenerEtiquetas(),
+      obtenerProductos(),
+    ]);
 
-    $.ajax({
-      url: apiUrl,
-      method: "GET",
-      dataType: "json",
-    })
-      .done(function (data) {
-        var selectOptions = $("#etiquetasSelect");
-        selectOptions.empty();
+    const etiquetasSelect = $("#etiquetasSelect");
+    const productosSelect = $("#productosSelect");
 
-        selectOptions.append('<option value="null" disabled>--Selecciona--</option>');
+    etiquetasSelect.empty().append('<option value="null" disabled>--Selecciona--</option>');
+    productosSelect.empty().append('<option value="null" disabled>--Selecciona--</option>');
 
-        for (var i = 0; i < data.length; i++) {
-          selectOptions.append(
-            '<option value="'+data[i].etiquetaId+'">'+data[i].nombre+'</option>',
-            console.log("test")
-          );
-        }
-        selectOptions.val("null");
-      })
-      .fail(function (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Error!",
-        });
-      });
-}
+    for (const etiqueta of etiquetasData) {
+      etiquetasSelect.append(`<option value="${etiqueta.etiquetaId}">${etiqueta.nombre}</option>`);
+    }
 
-function GetDataAndPopulateSelectProd() {
-  var apiUrl = "http://localhost:4090/api/Producto/obtenerProductos";
+    for (const producto of productosData) {
+      productosSelect.append(`<option value="${producto.productoId}">${producto.nombre}</option>`);
+    }
 
-  $.ajax({
-    url: apiUrl,
-    method: "GET",
-    dataType: "json",
-  })
-    .done(function (data) {
-      var pselectOptions = $("#productosSelect");
-      pselectOptions.empty();
-
-      pselectOptions.append('<option value="null" disabled>--Selecciona--</option>');
-
-      for (var i = 0; i < data.length; i++) {
-        pselectOptions.append(
-          '<option value="'+data[i].productoId+'">'+data[i].nombre+'</option>',
-          console.log("test")
-        );
-      }
-      pselectOptions.val("null");
-    })
-    .fail(function (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Error!",
-      });
+    etiquetasSelect.val("null");
+    productosSelect.val("null");
+  } catch (error) {
+    console.error("Error al poblar selects:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Error al cargar los datos para los selects.",
+      confirmButtonText: "Aceptar",
     });
+  }
 }
 
-var btnCreateProductoEtiqueta = document.getElementById("btnCreateProductoEtiqueta");
-if (btnCreateProductoEtiqueta != null)
-btnCreateProductoEtiqueta.addEventListener("click", function (e) {
+async function eliminarProductoEtiqueta(id) {
+  try {
+    const { status } = await eliminarProductoEtiquetaRequest(id);
+    if (status == 200 || status == 201) {
+      mostrarMensaje("eliminada", true, type);
+      waitForConfirmationList();
+    } else if (status == 400 || status == 404) {
+      mostrarMensaje("eliminada", false, type);
+    } else {
+      mostrarMensaje("eliminada", null, type);
+    }
+  } catch (error) {
+    console.error("Error al eliminar relación producto-etiqueta:", error);
+  } 
+}
+
+// Cargar Selectores
+
+async function GetDataAndPopulateSelectEti() {
+  try {
+    const data = await obtenerEtiquetas();
+    const selectOptions = $("#etiquetasSelect");
+    selectOptions.empty();
+
+    selectOptions.append('<option value="null" disabled>--Selecciona--</option>');
+
+    for (const etiqueta of data) {
+      selectOptions.append(
+        `<option value="${etiqueta.etiquetaId}">${etiqueta.nombre}</option>`
+      );
+    }
+    selectOptions.val("null");
+  } catch (error) {
+    console.error("Error al obtener etiquetas:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Error al cargar los datos para el select de etiquetas.",
+      confirmButtonText: "Aceptar",
+    });
+  }
+}
+
+async function GetDataAndPopulateSelectProd() {
+  try {
+    const data = await obtenerProductos();
+    const selectOptions = $("#productosSelect");
+    selectOptions.empty();
+
+    selectOptions.append('<option value="null" disabled>--Selecciona--</option>');
+
+    for (const producto of data) {
+      selectOptions.append(
+        `<option value="${producto.productoId}">${producto.nombre}</option>`
+      );
+    }
+    selectOptions.val("null");
+  } catch (error) {
+    console.error("Error al obtener productos:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Error al cargar los datos para el select de productos.",
+      confirmButtonText: "Aceptar",
+    });
+  }
+}
+
+// Funciones auxiliares
+
+// Obtener ID desde URL
+function getIdFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("id");
+}
+
+// Cargar botones
+function LoadCreateBtn(){
+  var btnCreateProductoEtiqueta = document.getElementById("btnCreateProductoEtiqueta");
+  if (btnCreateProductoEtiqueta != null)
+    btnCreateProductoEtiqueta.addEventListener("click", function (e) {
     e.preventDefault();
     validarNuevaAssignacion();
   });
-
-var btnUpdateProductoEtiqueta = document.getElementById("btnUpdateProductoEtiqueta");
-if (btnUpdateProductoEtiqueta != null)
-btnUpdateProductoEtiqueta.addEventListener("click", function (e) {
-    e.preventDefault();
-    modificarProductoEtiqueta();
+}
+function LoadUpdateBtn(){
+  var btnUpdateProductoEtiqueta = document.getElementById("btnUpdateProductoEtiqueta");
+  if (btnUpdateProductoEtiqueta != null)
+    btnUpdateProductoEtiqueta.addEventListener("click", function (e) {
+      e.preventDefault();
+      modificarProductoEtiqueta();
   });
+}
+function LoadDeleteBtn(){
+  var btnDeleteProTag = document.querySelectorAll(".btnDeleteProTag");
 
-var btnCancel = document.getElementById("btnCancel");
-if (btnCancel != null)
-btnCancel.addEventListener("click", function (e) {
+  if (btnDeleteProTag != null) {
+    for (var i = 0; i < btnDeleteProTag.length; i++) {
+      btnDeleteProTag[i].addEventListener("click", function (e) {
+        e.preventDefault();
+        var productId = this.getAttribute("product-id");
+        eliminarProductoEtiqueta(productId);
+      });
+    }
+  }
+}
+function LoadCancelBtn(){
+  var btnCancel = document.getElementById("btnCancel");
+  if (btnCancel != null)
+    btnCancel.addEventListener("click", function (e) {
     e.preventDefault();
-    goBack();
+    window.history.back();
   });
+}
 
-function mostrarMensaje(action, statusCode) {
+// Recargar datos de la página
+function DataReload() {
+  startOfPage();
+}
+
+// Mostrar mensaje según acción y estado
+function mostrarMensaje(action, statusCode, type) {
   var title, icon, text;
 
   switch (statusCode) {
-    case 200:
-    case 201:
-      title = "Success";
+    case true:
+      title = "Éxito";
       icon = "success";
-      text = "Su " + type + " fue " + action + " exitosamente.";
+      text = "La " + type + " se " + action + " correctamente.";
       break;
-    case 400:
-    case 404:
-    case 500:
+    case false:
       title = "Error";
       icon = "error";
-      text = "Existe un problema al " + action + " el " + type + ".";
+      text = "Hubo un problema al " + action + " la " + type + ".";
       break;
     default:
-      title = "Error";
+      title = "Error de servidor";
       icon = "error";
-      text = "Ha ocurrido un error inesperado.";
+      text = "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más tarde.";
       break;
   }
 
@@ -417,19 +329,12 @@ function mostrarMensaje(action, statusCode) {
     title: title,
     icon: icon,
     text: text,
+    confirmButtonText: "Aceptar",
   });
 }
 
-window.onload = function () {
-  startOfPage();
-};
-
-function populateSelects(){
-    GetDataAndPopulateSelectEti();
-    GetDataAndPopulateSelectProd();
-}
-
-function waitForConfirmation() {
+// Esperar confirmación después de una transacción (crear o actualizar)
+function waitForConfirmationForm() {
   document.addEventListener("click", function (event) {
     const target = event.target;
     if (
@@ -437,9 +342,29 @@ function waitForConfirmation() {
       target.classList.contains("swal2-confirm") &&
       target.classList.contains("swal2-styled")
     ) {
-      goToList();
+      // Redireccionar a productoetiquetaList.html en la misma pestaña
+      window.location.href = "productoetiquetaList.html";
     }
   });
+}
+
+// Esperar confirmación después de eliminar
+function waitForConfirmationList() {
+  document.addEventListener("click", function (event) {
+    const target = event.target;
+    if (
+      target &&
+      target.classList.contains("swal2-confirm") &&
+      target.classList.contains("swal2-styled")
+    ) {
+      DataReload();
+    }
+  });
+}
+
+function populateSelects(){
+    GetDataAndPopulateSelectEti();
+    GetDataAndPopulateSelectProd();
 }
 
 function clearFormFields() {
@@ -452,3 +377,8 @@ function clearFormFields() {
 function goBack() {
   window.history.back();
 }
+
+// Inicialización de la página
+window.onload = function () {
+  startOfPage();
+};

@@ -1,11 +1,11 @@
 // EtiquetaService.js
 
-const apiUrl = "http://localhost:4090/api/Etiqueta/";
+const apiUrlEtiqueta = "http://localhost:4090/api/Etiqueta/";
 
 // Obtener todas las etiquetas
 async function obtenerEtiquetas() {
   return $.ajax({
-    url: apiUrl + "obtenerEtiquetas",
+    url: apiUrlEtiqueta + "obtenerEtiquetas",
     method: "GET",
     dataType: "json",
   });
@@ -15,7 +15,7 @@ async function obtenerEtiquetas() {
 async function obtenerEtiquetaPorId(id) {
   return $.ajax({
     method: "GET",
-    url: apiUrl + `obtenerEtiquetaPorId/${id}`,
+    url: apiUrlEtiqueta + `obtenerEtiquetaPorId/${id}`,
   });
 }
 
@@ -27,7 +27,7 @@ async function crearEtiqueta(nuevaEtiqueta) {
         Accept: "application/json",
       },
       method: "POST",
-      url: apiUrl + "crearEtiqueta",
+      url: apiUrlEtiqueta + "crearEtiqueta",
       dataType: "text json",
       data: JSON.stringify(nuevaEtiqueta),
       hasContent: true,
@@ -53,7 +53,7 @@ async function actualizarEtiqueta(actualizadaEtiqueta) {
         Accept: "application/json",
       },
       method: "PUT",
-      url: apiUrl + "actualizarEtiqueta",
+      url: apiUrlEtiqueta + "actualizarEtiqueta",
       dataType: "json",
       data: JSON.stringify(actualizadaEtiqueta),
     })
@@ -75,7 +75,7 @@ async function eliminarEtiquetaRequest(id) {
   return new Promise((resolve, reject) => {
     $.ajax({
       method: "DELETE",
-      url: apiUrl + `eliminarEtiqueta/${id}`,
+      url: apiUrlEtiqueta + `eliminarEtiqueta/${id}`,
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });

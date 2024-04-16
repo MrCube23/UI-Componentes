@@ -1,11 +1,11 @@
 // ProductoService.js
 
-const apiUrl = "http://localhost:4090/api/Producto/";
+const apiUrlProducto = "http://localhost:4090/api/Producto/";
 
 // Obtener todos los productos
 async function obtenerProductos() {
   return $.ajax({
-    url: apiUrl + "obtenerProductos",
+    url: apiUrlProducto + "obtenerProductos",
     method: "GET",
     dataType: "json",
   });
@@ -15,7 +15,7 @@ async function obtenerProductos() {
 async function obtenerProductoPorId(id) {
   return $.ajax({
     method: "GET",
-    url: apiUrl + `obtenerProductoPorId/${id}`,
+    url: apiUrlProducto + `obtenerProductoPorId/${id}`,
   });
 }
 
@@ -27,7 +27,7 @@ async function crearProducto(nuevoProducto) {
         Accept: "application/json",
       },
       method: "POST",
-      url: apiUrl + "crearProducto",
+      url: apiUrlProducto + "crearProducto",
       dataType: "text json",
       data: JSON.stringify(nuevoProducto),
       hasContent: true,
@@ -53,7 +53,7 @@ async function actualizarProducto(actualizadoProducto) {
         Accept: "application/json",
       },
       method: "PUT",
-      url: apiUrl + "actualizarProducto",
+      url: apiUrlProducto + "actualizarProducto",
       dataType: "json",
       data: JSON.stringify(actualizadoProducto),
     })
@@ -75,7 +75,7 @@ async function eliminarProductoRequest(id) {
   return new Promise((resolve, reject) => {
     $.ajax({
       method: "DELETE",
-      url: apiUrl + `eliminarProducto/${id}`,
+      url: apiUrlProducto + `eliminarProducto/${id}`,
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });

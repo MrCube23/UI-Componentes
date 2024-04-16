@@ -1,11 +1,11 @@
 // ClienteService.js
 
-const apiUrl = "http://localhost:4090/api/Cliente/";
+const apiUrlCliente = "http://localhost:4090/api/Cliente/";
 
 // Obtener todos los clientes
 async function obtenerClientes() {
   return $.ajax({
-    url: apiUrl + "obtenerClientes",
+    url: apiUrlCliente + "obtenerClientes",
     method: "GET",
     dataType: "json",
   });
@@ -15,7 +15,7 @@ async function obtenerClientes() {
 async function obtenerClientePorId(id) {
   return $.ajax({
     method: "GET",
-    url: apiUrl + `obtenerClientePorId/${id}`,
+    url: apiUrlCliente + `obtenerClientePorId/${id}`,
   });
 }
 
@@ -27,7 +27,7 @@ async function crearCliente(nuevoCliente) {
         Accept: "application/json",
       },
       method: "POST",
-      url: apiUrl + "crearCliente",
+      url: apiUrlCliente + "crearCliente",
       dataType: "text json",
       data: JSON.stringify(nuevoCliente),
       hasContent: true,
@@ -53,7 +53,7 @@ async function actualizarCliente(actualizadoCliente) {
         Accept: "application/json",
       },
       method: "PUT",
-      url: apiUrl + "actualizarCliente",
+      url: apiUrlCliente + "actualizarCliente",
       dataType: "json",
       data: JSON.stringify(actualizadoCliente),
     })
@@ -75,7 +75,7 @@ async function eliminarClienteRequest(id) {
   return new Promise((resolve, reject) => {
     $.ajax({
       method: "DELETE",
-      url: apiUrl + `eliminarCliente/${id}`,
+      url: apiUrlCliente + `eliminarCliente/${id}`,
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });
