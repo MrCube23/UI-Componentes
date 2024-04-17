@@ -1,92 +1,124 @@
-const url = 'http://localhost:4090';
+// OrdenService.js
 
-async function getAllOrdenes() {
-	try {
-		const response = await $.ajax({
-			url: url.concat('/api/Orden/obtenerTodasLasOrdenes'),
-			type: 'GET',
-		});
+const apiUrlOrden = "http://localhost:4090/api/Orden/";
+const apiUrlDetallesOrden = "http://localhost:4090/api/DetallesOrden/";
 
-		return response;
-	}
-	catch (error) {
-		Swal.fire({
-			title: 'Error',
-			text: 'Ocurrio un error al obtener las ordenes',
-			icon: 'error',
-		});
-	}
+// Obtener todas las órdenes
+async function obtenerOrdenes() {
+  return $.ajax({
+    url: apiUrlOrden + "obtenerTodasLasOrdenes",
+    method: "GET",
+    dataType: "json",
+  });
 }
 
-async function getAllProductos() {
-	try {
-		const response = await $.ajax({
-			url: url.concat('/api/Producto/obtenerProductos'),
-			type: 'GET',
-		});
-
-		return response;
-	}
-	catch (error) {
-		Swal.fire({
-			title: 'Error',
-			text: 'Ocurrio un error al obtener los productos',
-			icon: 'error',
-		});
-	}
+// Obtener orden por ID
+async function obtenerOrdenPorId(id) {
+  return $.ajax({
+    method: "GET",
+    url: apiUrlOrden + `obtenerOrdenPorId/${id}`,
+  });
 }
 
-async function getCliente(id) {
-	try {
-		const response = await $.ajax({
-			url: url.concat('/api/Cliente/obtenerClientePorId/', id),
-			type: 'GET',
-		});
-
-		return response;
-	}
-	catch (error) {
-		Swal.fire({
-			title: 'Error',
-			text: 'Ocurrio un error al obtener el cliente',
-			icon: 'error',
-		});
-	}
+// Crear una nueva orden
+async function crearOrden(nuevaOrden) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      headers: {
+        Accept: "application/json",
+      },
+      method: "POST",
+      url: apiUrlOrden + "crearOrden",
+      dataType: "text json",
+      data: JSON.stringify(nuevaOrden),
+      hasContent: true,
+    })
+      .done((response, textStatus, xhr) => {
+        resolve({ success: true, status: xhr.status, data: response });
+      })
+      .fail((xhr, textStatus, errorThrown) => {
+        if (xhr.responseText.trim() === "") {
+          resolve({ success: true, status: xhr.status, data: null });
+        } else {
+          resolve({ success: false, status: xhr.status, error: errorThrown });
+        }
+      });
+  });
 }
 
-async function getDetalleOrden(id) {
-	try {
-		const response = await $.ajax({
-			url: url.concat('/api/DetallesOrden/obtenerDetallesOrdenPorOrdenId/', id),
-			type: 'GET',
-		});
-
-		return response;
-	}
-	catch (error) {
-		Swal.fire({
-			title: 'Error',
-			text: 'Ocurrio un error al obtener el detalle de la orden',
-			icon: 'error',
-		});
-	}
+// Actualizar orden existente
+async function actualizarOrden(actualizadaOrden) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      headers: {
+        Accept: "application/json",
+      },
+      method: "PUT",
+      url: apiUrlOrden + "actualizarOrden",
+      dataType: "json",
+      data: JSON.stringify(actualizadaOrden),
+    })
+      .done((response, textStatus, xhr) => {
+        resolve({ success: true, status: xhr.status, data: response });
+      })
+      .fail((xhr, textStatus, errorThrown) => {
+        if (xhr.responseText.trim() === "") {
+          resolve({ success: true, status: xhr.status, data: null });
+        } else {
+          resolve({ success: false, status: xhr.status, error: errorThrown });
+        }
+      });
+  });
 }
 
-async function deleteDetalleOrden(id) {
-	try {
-		const response = await $.ajax({
-			url: url.concat('/api/DetallesOrden/eliminarDetallesOrden/', id),
-			dataType: 'text',
-			type: 'DELETE',
-		});
+// Eliminar orden por ID
+async function eliminarOrdenRequest(id) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      method: "DELETE",
+      url: apiUrlOrden + `eliminarOrden/${id}`,
+    })
+      .done((response, textStatus, xhr) => {
+        resolve({ success: true, status: xhr.status, data: response });
+      })
+      .fail((xhr, textStatus, errorThrown) => {
+        if (xhr.responseText.trim() === "") {
+          resolve({ success: true, status: xhr.status, data: null });
+        } else {
+          resolve({ success: false, status: xhr.status, error: errorThrown });
+        }
+      });
+  });
+}
 
-		return true;
-	}
-	catch (error) {
-		Swal.fire({
-			title: 'Error',
-			text: 'Ocurrio un error al eliminar el detalle de la orden',
-			icon: 'error',
-		});
-	}
+
+// Crear un nuevo detalle de orden
+async function crearDetallesOrden(nuevoOrdenDetalle) {
+	return $.ajax({
+	  headers: {
+		Accept: "application/json",
+	  },
+	  method: "POST",
+	  url: apiUrlDetallesOrden + "crearDetallesOrden",
+	  dataType: "json",
+	  data: JSON.stringify(nuevoOrdenDetalle),
+	  hasContent: true,
+	});
+  }
+
+// Obtener detalles de orden por ID de orden
+async function obtenerDetallesOrdenPorOrdenId(ordenId) {
+  return $.ajax({
+    method: "GET",
+    url: apiUrlDetallesOrden + `obtenerDetallesOrdenPorOrdenId/${ordenId}`,
+  });
+}
+
+// Eliminar detalles de orden por ID
+async function eliminarDetallesOrden(id) {
+  return $.ajax({
+    method: "DELETE",
+    url: apiUrlDetallesOrden + `eliminarDetallesOrden/${id}`,
+    dataType: "text", 
+  });
 }

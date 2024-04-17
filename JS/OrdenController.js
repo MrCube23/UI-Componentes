@@ -7,15 +7,15 @@ let cliente = null;
 var totalActual = 0;
 
 async function startOfPage() {
+  LoadListPage();
   checkValidarButtonState();
   GetDataAndPopulateSelectCli();
   cargarvalidacioncupones();
   agregarProducto(true);
 
   var btnDeleteOrden = document.querySelectorAll(".btnDeleteOrden");
-  console.log(btnDeleteOrden);
 
-  const btnCreateOrden = document.getElementById("btnCreateCliente"); // Assuming this is the correct button ID
+  const btnCreateOrden = document.getElementById("btnCreateCliente");
   if (btnCreateOrden) {
     btnCreateOrden.addEventListener("click", function (e) {
       e.preventDefault();
@@ -43,12 +43,9 @@ async function cargarvalidacioncupones() {
     var descuento = await validarCupon(cuponCodigo);
     if (descuento) {
 
-      console.log('Descuento aplicado:', descuento);
-      // Cambiar clase del icono a check si el cupón es válido
       iconSpan.className = 'bi bi-check-circle-fill text-success';
     } else {
       console.error('Error al validar el cupón:', error);
-      // Cambiar clase del icono a x-circle si el cupón no es válido
       iconSpan.className = 'bi bi-x-circle-fill text-danger';
     }
   });
@@ -59,46 +56,11 @@ function checkValidarButtonState() {
   var btnValidar = document.getElementById("btnValitadeCupon");
   var isTotalValid = !isNaN(parseFloat(totalInput.value)) && parseFloat(totalInput.value) > 0;
 
-  btnValidar.disabled = cuponUsado || !isTotalValid;  // Disable if coupon used or total invalid
-  console.log('isTotalValid:', isTotalValid);
-  console.log('cuponUsado:', cuponUsado);
+  btnValidar.disabled = cuponUsado || !isTotalValid; 
 }
 
 function goToList() {
   window.open("ordenList.html", "_self");
-}
-
-function callINFUsuario(id) {
-  return new Promise((resolve, reject) => {
-    var apiURL = `http://localhost:4090/api/Cliente/obtenerClientePorId/${id}`;
-    $.ajax({
-      method: "GET",
-      url: apiURL,
-      success: function (response) {
-        resolve(response.nombreCompleto);
-        cliente = response;
-      },
-      error: function (error) {
-        reject(error);
-      },
-    });
-  });
-}
-
-function callINFProducto(id) {
-  return new Promise((resolve, reject) => {
-    var apiURL = `http://localhost:4090/api/Producto/obtenerProductoPorId/${id}`;
-    $.ajax({
-      method: "GET",
-      url: apiURL,
-      success: function (response) {
-        resolve(response.nombre);
-      },
-      error: function (error) {
-        reject(error);
-      },
-    });
-  });
 }
 
 function validarNuevaOrden() {
@@ -116,37 +78,20 @@ function validarNuevaOrden() {
       "cupon": cupon,
     }
 
-    var apiUrl = "http://localhost:4090/api/Orden/crearOrden";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "POST",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(nuevaOrden),
-      hasContent: true,
-      statusCode: {
-        200: function (data) {
-          mostrarMensaje("creado", 200);
-          validarNuevaOrdenDetalle(data.ordenId);
-        },
-        201: function () {
-          mostrarMensaje("creado", 201);
-          validarNuevaOrdenDetalle(data.ordenId);
-        },
-        400: function () {
-          mostrarMensaje("crear", 400);
-        },
-        404: function () {
-          mostrarMensaje("crear", 404);
-        },
-        500: function () {
-          mostrarMensaje("crear", 500);
-        },
-      },
-    });
+    crearOrden(nuevaOrden)
+      .then(({ status, data }) => {
+        if (status == 200 || status == 201) {
+          mostrarMensaje("creado", true, type);
+          validarNuevaOrdenDetalle(data.ordenId); 
+        } else {
+          mostrarMensaje("creado", false, type);
+        }
+      })
+      .catch((error) => {
+        console.error("Error al crear orden:", error);
+        mostrarMensaje("creado", null, type); 
+      });
+      
   } else {
     Swal.fire({
       title: "Message",
@@ -200,64 +145,34 @@ function validarNuevaOrdenDetalle(ordenId) {
 
 }
 
-function crearOrdenDetalle(nuevoOrdenDetalle) {
+// Adapted crearOrdenDetalle using OrdenService
 
-  $.ajax({
-    headers: {
-      Accept: "application/json",
-    },
-    method: "POST",
-    url: "http://localhost:4090/api/DetallesOrden/crearDetallesOrden",
-    dataType: "json",
-    data: JSON.stringify(nuevoOrdenDetalle),
-    hasContent: true,
-    statusCode: {
-      200: function () {
-        console.log("Detalle de orden creado con éxito.");
-      },
-      201: function () {
-        console.log("Detalle de orden creado con éxito (código 201).");
-      },
-      400: function () {
-        console.error("Error 400: Solicitud incorrecta al crear detalle de orden.");
-      },
-      404: function () {
-        console.error("Error 404: Ruta no encontrada para crear detalle de orden.");
-      },
-      500: function () {
-        console.error("Error 500: Error del servidor al crear detalle de orden.");
-      },
-    },
-  });
+async function crearOrdenDetalle(nuevoOrdenDetalle) {
+  try {
+    const response = await crearDetallesOrden(nuevoOrdenDetalle);
+    return response;
+  } catch (error) {
+    console.error("Error al crear detalle de orden:", error);
+    throw error;
+  }
 }
 
-function eliminarOrden(id) {
-  var apiUrl = `http://localhost:4090/api/Orden/eliminarOrden/${id}`;
-  $.ajax({
-    headers: {
-      Accept: "application/json",
-    },
-    method: "DELETE",
-    url: apiUrl,
-    dataType: "json",
-    statusCode: {
-      200: function () {
-        mostrarMensaje("eliminada", 200), startOfPage();
-      },
-      201: function () {
-        mostrarMensaje("eliminada", 201), startOfPage();
-      },
-      400: function () {
-        mostrarMensaje("eliminar", 400);
-      },
-      404: function () {
-        mostrarMensaje("eliminar", 404);
-      },
-      500: function () {
-        mostrarMensaje("eliminar", 500);
-      },
-    },
-  });
+// Adapted eliminarOrden using OrdenService
+
+async function eliminarOrden(id) {
+  try {
+    const response = await eliminarOrdenRequest(id);
+    if (response.success) {
+      mostrarMensaje("Orden eliminada", response.status);
+      startOfPage();
+    } else {
+      console.error("Error al eliminar orden:", response.error);
+      mostrarMensaje("Error al eliminar orden", response.status);
+    }
+  } catch (error) {
+    console.error("Error al eliminar orden:", error);
+    mostrarMensaje("Error al eliminar orden", 500);
+  }
 }
 
 function getIdFromURL() {
@@ -275,39 +190,19 @@ function modificarOrden() {
       clienteId: cliente,
       codigoCupon: cupon
     };
-    var apiUrl = "http://localhost:4090/api/Orden/actualizarOrden";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "PUT",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(actualizarOrden),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("actualizada", 200),
-            clearFormFields();
-          //waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("actualizada", 201),
-            clearFormFields();
-          //waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("actualizar", 400);
-        },
-        404: function () {
-          mostrarMensaje("actualizar", 404);
-        },
-        500: function () {
-          mostrarMensaje("actualizar", 500);
-        },
-      },
-    });
+    actualizarOrdenService(actualizarOrden)
+      .then(({ status }) => {
+        if (status == 200 || status == 201) {
+          mostrarMensaje("actualizada", true, type);
+          clearFormFields(); 
+        } else {
+          mostrarMensaje("actualizada", false, type);
+        }
+      })
+      .catch((error) => {
+        console.error("Error al actualizar orden:", error);
+        mostrarMensaje("actualizada", null, type); 
+      });
   } else {
     Swal.fire({
       title: "Message",
@@ -317,68 +212,53 @@ function modificarOrden() {
   }
 }
 
-function fillProductSelect(selectElement, excludedProducts) {
-  var apiUrl = "http://localhost:4090/api/Producto/obtenerProductos";
+async function fillProductSelect(selectElement, excludedProducts) {
+  try {
+    const productos = await obtenerProductos();
+    selectElement.empty();
+    selectElement.append('<option value="null" disabled>--Selecciona--</option>');
 
-  $.ajax({
-    url: apiUrl,
-    method: "GET",
-    dataType: "json",
-    success: function (data) {
-      selectElement.empty();
-      selectElement.append('<option value="null" disabled>--Selecciona--</option>');
-
-      $.each(data, function (index, producto) {
-        if (!excludedProducts.includes(producto.productoId)) {
-          selectElement.append(
-            '<option value="' + producto.productoId + '" data-price="' + producto.precio + '">' + producto.nombre + '</option>'
-          );
-        }
-      });
-      selectElement.val("null");
-    },
-    error: function (error) {
-      console.error("Error al obtener productos:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Error al cargar productos!",
-      });
-    },
-  });
-}
-
-function GetDataAndPopulateSelectCli() {
-  var apiUrl = "http://localhost:4090/api/Cliente/obtenerClientes";
-
-  $.ajax({
-    url: apiUrl,
-    method: "GET",
-    dataType: "json",
-  })
-    .done(function (data) {
-      var selectOptions = $("#clientesSelect");
-      selectOptions.empty();
-
-      // Add a disabled placeholder option
-      selectOptions.append('<option value="" disabled selected>Selecciona un cliente</option>');
-
-      for (var i = 0; i < data.length; i++) {
-        selectOptions.append(
-          '<option value="' + data[i].clienteId + '">' +
-          data[i].nombre + ' ' + data[i].primerApellido + ' ' + data[i].segundoApellido +
-          '</option>'
+    productos.forEach(producto => {
+      if (!excludedProducts.includes(producto.productoId)) {
+        selectElement.append(
+          `<option value="${producto.productoId}" data-price="${producto.precio}">${producto.nombre}</option>`
         );
       }
-    })
-    .fail(function (error) {
-      Swal.fire({
+    });
+
+    selectElement.val("null");
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Error al cargar productos!",
+    });
+  }
+}
+
+async function GetDataAndPopulateSelectCli() {
+  try {
+    const data = await obtenerClientes();
+    const selectOptions = $("#clientesSelect");
+    selectOptions.empty();
+
+    selectOptions.append('<option value="null">Selecciona un cliente</option>'); 
+
+    data.forEach(cliente => {
+      selectOptions.append(
+        `<option value="${cliente.clienteId}">${cliente.nombre} ${cliente.primerApellido} ${cliente.segundoApellido}</option>`
+      );
+    });
+  } catch (error) {
+    console.error("Error al obtener clientes:", error);
+    Swal.fire({
         icon: "error",
         title: "Oops...",
         text: "Error al cargar clientes!",
       });
-    });
-}
+  }
+} 
 
 function agregarProducto(isFirst) {
   var productosContainer = $("#productosContainer");
@@ -410,7 +290,6 @@ function agregarProducto(isFirst) {
     </div>
   `);
 
-  // Agregar event listeners a los botones de incremento y decremento
   productoRow.find(".decreaseBtn").click(function () {
     decrementarCantidad(this);
   });
@@ -421,7 +300,6 @@ function agregarProducto(isFirst) {
     updatePriceAndTotal(this, $(this).closest('.producto-row').find('.quantity-input'), $(this).closest('.producto-row').find('.price-input'));
   });
 
-  // Obtener los productos seleccionados en las filas anteriores
   var selectedProducts = [];
   productosContainer.find('.productosSelect').each(function () {
     var selectedProduct = $(this).val();
@@ -432,7 +310,6 @@ function agregarProducto(isFirst) {
 
   productosContainer.append(productoRow);
 
-  // Llenar el select de productos excluyendo los productos seleccionados previamente
   fillProductSelect(productoRow.find(".productosSelect"), selectedProducts);
 
 }
@@ -451,44 +328,33 @@ function updatePriceAndTotal(productSelect, quantityInput, precioInput) {
 }
 
 async function validarCupon(cuponCodigo) {
-  return new Promise((resolve, reject) => {
-    var apiUrl = `http://localhost:4090/api/Cupon/buscarCuponPorCodigo/${cuponCodigo}`;
-
-    $.ajax({
-      url: apiUrl,
-      method: "GET",
-      dataType: "json",
-    })
-      .done(function (response) {
-        if (!response.payload) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Cupón inválido o sin descuento!',
-          });
-          resolve(null);
-        }
-        else {
-          var descuento = response.payload.descuento;
-          cupon = response.payload;
-          console.log('Cupón válido:', cupon);
-          appliedDiscount = descuento;
-          recalcularTotal();
-          cuponUsado = true;
-          checkValidarButtonState();
-
-          Swal.fire({
-            icon: 'success',
-            title: '¡Cupón válido!',
-            text: `Se aplicó un descuento de ${descuento}%`,
-          });
-        }
-      })
-      .fail(function (error) {
-        console.error("Error validating coupon:", error);
-        resolve(null);
+  try {
+    const response = await buscarCuponPorCodigo(cuponCodigo);
+    if (!response.payload) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Cupón inválido o sin descuento!',
       });
-  });
+      return null;
+    } else {
+      const descuento = response.payload.descuento;
+      cupon = response.payload;
+      appliedDiscount = descuento;
+      recalcularTotal();
+      cuponUsado = true;
+      checkValidarButtonState();
+      Swal.fire({
+        icon: 'success',
+        title: '¡Cupón válido!',
+        text: `Se aplicó un descuento de ${descuento}%`,
+      });
+      return response.payload;
+    }
+  } catch (error) {
+    console.error("Error validating coupon:", error);
+    return null;
+  }
 }
 
 function incrementarCantidad(button) {
@@ -534,13 +400,11 @@ function eliminarProducto(button) {
   var priceInput = row.querySelector('.price-input');
   var price = parseFloat(priceInput.value) || 0;
 
-  // Restar el precio del producto eliminado del total
   var totalInput = document.getElementById("total");
   var currentTotal = parseFloat(totalInput.value) || 0;
-  var newTotal = Math.max(0, currentTotal - price); // No permitir que el total sea negativo
+  var newTotal = Math.max(0, currentTotal - price);
   totalInput.value = newTotal.toFixed(2);
 
-  // Eliminar la fila del producto
   row.remove();
   recalcularTotal();
 }
@@ -549,27 +413,25 @@ window.onload = function () {
   startOfPage();
 };
 
-function mostrarMensaje(action, statusCode) {
+// Mostrar mensaje según acción y estado
+function mostrarMensaje(action, statusCode, type) {
   var title, icon, text;
 
   switch (statusCode) {
-    case 200:
-    case 201:
-      title = "Success";
+    case true:
+      title = "Éxito";
       icon = "success";
-      text = "Su " + type + " fue " + action + " exitosamente.";
+      text = "El " + type + " se " + action + " correctamente.";
       break;
-    case 400:
-    case 404:
-    case 500:
+    case false:
       title = "Error";
       icon = "error";
-      text = "Existe un problema al " + action + " el " + type + ".";
+      text = "Hubo un problema al " + action + " el " + type + ".";
       break;
     default:
-      title = "Error";
+      title = "Error de servidor";
       icon = "error";
-      text = "Ha ocurrido un error inesperado.";
+      text = "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más tarde.";
       break;
   }
 
@@ -577,5 +439,112 @@ function mostrarMensaje(action, statusCode) {
     title: title,
     icon: icon,
     text: text,
+    confirmButtonText: "Aceptar",
   });
+}
+
+const cellRendererDelete = (options) => {
+  if (!options.data) return null;
+  const button = document.createElement('span');
+  button.textContent = 'Eliminar';
+  button.classList.add('text-danger', 'cursor-pointer');
+  button.addEventListener('click', async () => {
+    const { data } = options;
+    const { detalle } = data;
+    const { detalleId } = detalle;
+    const result = await eliminarDetallesOrden(detalleId);
+    if (result) {
+      Swal.fire('Eliminado', 'El detalle de la orden ha sido eliminado correctamente.', 'success');
+      reloadData();
+    }
+  });
+
+  return button;
+};
+
+let apiGrid = null;
+const gridOptions = {
+  columnDefs: [
+    {
+      valueFormatter: ({ value, node }) => {
+        if (node.allLeafChildren.length === 0) return `Orden #${value}`;
+
+        const { cliente, orden } = node.allLeafChildren[0].data;
+        return `Orden #${orden.ordenId} - ${cliente.nombre} ${cliente.primerApellido} ${cliente.segundoApellido}`;
+      },
+      headerName: 'Orden', field: 'orden.ordenId',
+      hide: true, rowGroup: true,
+    },
+    {
+      headerName: 'Detalle ID', field: 'detalle.detalleId',
+    },
+    {
+      headerName: 'Nombre Producto', field: 'producto.nombre',
+    },
+    {
+      headerName: 'Descripción', field: 'producto.descripcion',
+    },
+    {
+      headerName: 'Precio', field: 'producto.precio',
+    },
+    {
+      headerName: 'Cantidad', field: 'detalle.cantidad',
+    },
+    {
+      headerName: 'Fecha', field: 'orden.fecha',
+    },
+    {
+      headerName: 'Acciones',
+      cellRenderer: cellRendererDelete,
+    }
+  ],
+  defaultColDef: {
+    filter: true,
+    sortable: true,
+    editable: false,
+    resizable: true,
+  },
+};
+
+async function fetchDetalleOrden(orden, productos) {
+  try {
+    const cliente = await obtenerClientePorId(orden.clienteId);
+    const detalles = await obtenerDetallesOrdenPorOrdenId(orden.ordenId);
+    const formatted = detalles.map(d => {
+      const producto = productos.find(p => p.productoId === d.productoId);
+      if (!producto) return null;
+
+      return {
+        orden,
+        cliente,
+        producto,
+        detalle: d,
+      };
+    });
+
+    return formatted.filter(Boolean);
+  }
+  catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+async function reloadData() {
+  const productos = await obtenerProductos();
+  const ordenes = await obtenerOrdenes();
+
+  const obtenidos = ordenes.map(o => fetchDetalleOrden(o, productos));
+  const detalles = await Promise.all(obtenidos);
+  const data = detalles.flat();
+
+  apiGrid.setGridOption('rowData', data);
+}
+
+function LoadListPage(){
+  const gridDiv = document.querySelector('#ag-root');
+  if (gridDiv){
+    apiGrid = new agGrid.createGrid(gridDiv, gridOptions);
+    reloadData();
+  }
 }

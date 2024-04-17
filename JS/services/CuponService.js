@@ -89,3 +89,11 @@ async function eliminarCuponRequest(id) {
       });
   });
 }
+
+//Validar cupón por código
+async function buscarCuponPorCodigo(cuponCodigo) {
+  return $.ajax({
+    method: "GET",
+    url: apiUrlCupon + `buscarCuponPorCodigo/${cuponCodigo}`,
+  });
+}
