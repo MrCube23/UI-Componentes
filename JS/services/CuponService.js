@@ -1,36 +1,35 @@
-// OrdenService.js
+// CuponService.js
 
-const apiUrlOrden = "http://localhost:4090/api/Orden/";
-const apiUrlDetallesOrden = "http://localhost:4090/api/DetallesOrden/";
+const apiUrlCupon = "http://localhost:4090/api/Cupon/";
 
-// Obtener todas las órdenes
-async function obtenerOrdenes() {
+// Obtener todos los cupones
+async function obtenerCupones() {
   return $.ajax({
-    url: apiUrlOrden + "obtenerTodasLasOrdenes",
+    url: apiUrlCupon + "obtenerCupones",
     method: "GET",
     dataType: "json",
   });
 }
 
-// Obtener orden por ID
-async function obtenerOrdenPorId(id) {
+// Obtener cupón por ID
+async function obtenerCuponPorId(id) {
   return $.ajax({
     method: "GET",
-    url: apiUrlOrden + `obtenerOrdenPorId/${id}`,
+    url: apiUrlCupon + `obtenerCuponPorId/${id}`,
   });
 }
 
-// Crear una nueva orden
-async function crearOrden(nuevaOrden) {
+// Crear un nuevo cupón
+async function crearCupon(nuevoCupon) {
   return new Promise((resolve, reject) => {
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "POST",
-      url: apiUrlOrden + "crearOrden",
+      url: apiUrlCupon + "crearCupon",
       dataType: "text json",
-      data: JSON.stringify(nuevaOrden),
+      data: JSON.stringify(nuevoCupon),
       hasContent: true,
     })
       .done((response, textStatus, xhr) => {
@@ -46,17 +45,17 @@ async function crearOrden(nuevaOrden) {
   });
 }
 
-// Actualizar orden existente
-async function actualizarOrden(actualizadaOrden) {
+// Actualizar cupón existente
+async function actualizarCupon(actualizadoCupon) {
   return new Promise((resolve, reject) => {
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "PUT",
-      url: apiUrlOrden + "actualizarOrden",
+      url: apiUrlCupon + "actualizarCupon",
       dataType: "json",
-      data: JSON.stringify(actualizadaOrden),
+      data: JSON.stringify(actualizadoCupon),
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });
@@ -71,12 +70,12 @@ async function actualizarOrden(actualizadaOrden) {
   });
 }
 
-// Eliminar orden por ID
-async function eliminarOrdenRequest(id) {
+// Eliminar cupón por ID
+async function eliminarCuponRequest(id) {
   return new Promise((resolve, reject) => {
     $.ajax({
       method: "DELETE",
-      url: apiUrlOrden + `eliminarOrden/${id}`,
+      url: apiUrlCupon + `eliminarCupon/${id}`,
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });
@@ -91,34 +90,10 @@ async function eliminarOrdenRequest(id) {
   });
 }
 
-
-// Crear un nuevo detalle de orden
-async function crearDetallesOrden(nuevoOrdenDetalle) {
-	return $.ajax({
-	  headers: {
-		Accept: "application/json",
-	  },
-	  method: "POST",
-	  url: apiUrlDetallesOrden + "crearDetallesOrden",
-	  dataType: "json",
-	  data: JSON.stringify(nuevoOrdenDetalle),
-	  hasContent: true,
-	});
-  }
-
-// Obtener detalles de orden por ID de orden
-async function obtenerDetallesOrdenPorOrdenId(ordenId) {
+//Validar cupón por código
+async function buscarCuponPorCodigo(cuponCodigo) {
   return $.ajax({
     method: "GET",
-    url: apiUrlDetallesOrden + `obtenerDetallesOrdenPorOrdenId/${ordenId}`,
-  });
-}
-
-// Eliminar detalles de orden por ID
-async function eliminarDetallesOrden(id) {
-  return $.ajax({
-    method: "DELETE",
-    url: apiUrlDetallesOrden + `eliminarDetallesOrden/${id}`,
-    dataType: "text", 
+    url: apiUrlCupon + `buscarCuponPorCodigo/${cuponCodigo}`,
   });
 }

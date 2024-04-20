@@ -1,11 +1,200 @@
+// ProductoController.js
+
+// Variables globales
 let action = null;
 let type = "producto";
 
+// Inicio de la página
 async function startOfPage() {
   await GetDataAndPopulateTable();
   let urlId = getProductIdFromURL();
   if (urlId) GetDataOfSpecificId(urlId);
+  LoadCreateBtn();
+  LoadUpdateBtn();
+  LoadDeleteBtn();
+  LoadCancelBtn();
+}
 
+function goToList() {
+  window.open("productoList.html", "_self");
+}
+
+// CRUD
+
+// Obtener datos y poblar tabla
+async function GetDataAndPopulateTable() {
+  try {
+    const data = await obtenerProductos();
+    var tableBody = $("#dynamicTableBody");
+    tableBody.empty();
+
+    for (var i = 0; i < data.length; i++) {
+      tableBody.append(
+        "<tr>" +
+          '<th scope="row" class="txtId">' +
+          data[i].productoId +
+          "</th>" +
+          '<td class="txtName">' +
+          data[i].nombre +
+          "</td>" +
+          '<td class="txtDescription">' +
+          data[i].descripcion +
+          "</td>" +
+          '<td class="txtPrice">' +
+          data[i].precio +
+          "</td>" +
+          '<td class="actionDelete"><a class="btnModifyProduct" href="productoModify.html?id=' +
+          data[i].productoId +
+          '">Actualizar</a> / <a  href="#" class="btnDeleteProduct" product-id="' +
+          data[i].productoId +
+          '">Eliminar</a></td>' +
+          "</tr>"
+      );
+    }
+  } catch (error) {
+    console.error("Error al obtener productos:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Hubo un error al cargar los datos.",
+      confirmButtonText: "Aceptar",
+    });
+  }
+}
+
+// Validar nuevo producto
+async function validarNuevoProducto() {
+  var name = document.getElementById("productName").value;
+  var description = document.getElementById("productDescription").value;
+  var price = document.getElementById("productPrice").value;
+
+  if (name.trim() !== "" && description.trim() !== "" && price.trim() !== "") {
+    var nuevoProducto = {
+      nombre: name,
+      descripcion: description,
+      precio: price,
+    };
+
+    try {
+      const { status } = await crearProducto(nuevoProducto);
+      console.log("Éxito al crear producto. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("creado", true, type);
+        waitForConfirmationForm();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("creado", false, type);
+      } else {
+        mostrarMensaje("creado", null, type);
+      }   
+    } catch (error) {
+      console.error("Error al crear producto:", error);
+    }
+  } else {
+    Swal.fire({
+      title: "Message",
+      icon: "error",
+      text: "Por favor, complete todos los campos.",
+    });
+  }
+}
+
+// Modificar producto
+async function modificarProducto() {
+  var id = getProductIdFromURL();
+  var name = document.getElementById("productName").value;
+  var description = document.getElementById("productDescription").value;
+  var price = document.getElementById("productPrice").value;
+
+  if (name.trim() !== "" && description.trim() !== "" && price.trim() !== "") {
+    var ProductoActualizada = {
+      productoId: id,
+      nombre: name,
+      descripcion: description,
+      precio: price,
+    };
+
+    try {
+      const { status } = await actualizarProducto(ProductoActualizada);
+      console.log("Éxito de la actualización. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("actualizado", true, type);
+        waitForConfirmationForm();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("actualizado", false, type);
+      } else {
+        mostrarMensaje("actualizado", null, type);
+      }   
+    } catch (error) {
+      console.error("Error al actualizar producto:", error);
+    }
+  } else {
+    Swal.fire({
+      title: "Message",
+      icon: "error",
+      text: "Por favor, complete todos los campos.",
+    });
+  }
+}
+
+// Eliminar producto
+async function eliminarProducto(id) {
+  try {
+    const { status } = await eliminarProductoRequest(id);
+    console.log("Éxito de la eliminación. Estado:", status);
+
+      if (status == 200 || status == 201) {
+        mostrarMensaje("eliminado", true, type);
+        waitForConfirmationList();
+      } else if (status == 400 || status == 404) {
+        mostrarMensaje("eliminado", false, type);
+      } else {
+        mostrarMensaje("eliminado", null, type);
+      }   
+  } catch (error) {
+    console.error("Error al eliminar producto:", error);
+  } 
+}
+
+// Funciones auxiliares
+
+// Obtener ID desde URL
+function getProductIdFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("id");
+}
+// Obtener datos de un ID específico
+function GetDataOfSpecificId(selectedProductId) {
+  obtenerProductoPorId(selectedProductId)
+    .then((response) => {
+      $("#productName").val(response.nombre);
+      $("#productDescription").val(response.descripcion);
+      $("#productPrice").val(response.precio);
+    })
+    .catch((error) => {
+      console.error("Error al obtener producto por ID:", error);
+    });
+}
+
+// Cargar botones
+function LoadCreateBtn(){
+  var btnCreateProduct = document.getElementById("btnCreateProduct");
+  if (btnCreateProduct != null)
+    btnCreateProduct.addEventListener("click", function (e) {
+    e.preventDefault();
+    validarNuevoProducto();
+  });
+}
+function LoadUpdateBtn(){
+  var btnUpdateProduct = document.getElementById("btnUpdateProduct");
+  if (btnUpdateProduct != null)
+    btnUpdateProduct.addEventListener("click", function (e) {
+      e.preventDefault();
+      modificarProducto();
+  });
+}
+function LoadDeleteBtn(){
   var btnDeleteProducts = document.querySelectorAll(".btnDeleteProduct");
   console.log(btnDeleteProducts);
   if (btnDeleteProducts != null) {
@@ -18,264 +207,39 @@ async function startOfPage() {
     }
   }
 }
-
-function goToList() {
-  window.open("productoList.html", "_self");
-}
-
-function validarNuevoProducto() {
-  var name = document.getElementById("productName").value;
-  var description = document.getElementById("productDescription").value;
-  var price = document.getElementById("productPrice").value;
-
-  if (name.trim() !== "" && description.trim() !== "" && price.trim() !== "") {
-    var nuevoProducto = {
-      nombre: name,
-      descripcion: description,
-      precio: price,
-    };
-
-    var apiUrl = "http://localhost:4090/api/Producto/crearProducto";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "POST",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(nuevoProducto),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("creado", 200),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("creado", 201),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("crear", 400);
-        },
-        404: function () {
-          mostrarMensaje("crear", 404);
-        },
-        500: function () {
-          mostrarMensaje("crear", 500);
-        },
-      },
-    });
-  } else {
-    Swal.fire({
-      title: "Message",
-      icon: "error",
-      text: "Por favor, complete todos los campos.",
-    });
-  }
-}
-
-async function GetDataAndPopulateTable() {
-  return new Promise((resolve, reject) => {
-    var apiUrl = "http://localhost:4090/api/Producto/obtenerProductos";
-
-    $.ajax({
-      url: apiUrl,
-      method: "GET",
-      dataType: "json",
-    })
-      .done(function (data) {
-        var tableBody = $("#dynamicTableBody");
-        tableBody.empty();
-
-        for (var i = 0; i < data.length; i++) {
-          tableBody.append(
-            "<tr>" +
-              '<th scope="row" class="txtId">' +
-              data[i].productoId +
-              "</th>" +
-              '<td class="txtName">' +
-              data[i].nombre +
-              "</td>" +
-              '<td class="txtDescription">' +
-              data[i].descripcion +
-              "</td>" +
-              '<td class="txtPrice">' +
-              data[i].precio +
-              "</td>" +
-              '<td class="actionDelete"><a class="btnModifyProduct" href="productoModify.html?id=' +
-              data[i].productoId +
-              '">Actualizar</a> / <a  href="#" class="btnDeleteProduct" product-id="' +
-              data[i].productoId +
-              '">Eliminar</a></td>' +
-              "</tr>"
-          );
-        }
-        resolve();
-      })
-      .fail(function (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Error!",
-        });
-        reject();
-      });
-  });
-}
-
-function eliminarProducto(id) {
-  var apiUrl = `http://localhost:4090/api/Producto/eliminarProducto/${id}`;
-
-  $.ajax({
-    headers: {
-      Accept: "application/json",
-    },
-    method: "DELETE",
-    url: apiUrl,
-    dataType: "json",
-    statusCode: {
-      200: function () {
-        mostrarMensaje("eliminado", 200), startOfPage();
-      },
-      201: function () {
-        mostrarMensaje("eliminado", 201), startOfPage();
-      },
-      400: function () {
-        mostrarMensaje("eliminar", 400);
-      },
-      404: function () {
-        mostrarMensaje("eliminar", 404);
-      },
-      500: function () {
-        mostrarMensaje("eliminar", 500);
-      },
-    },
-  });
-}
-
-function getProductIdFromURL() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("id");
-}
-
-function GetDataOfSpecificId(selectedProductId) {
-  var apiUrl = `http://localhost:4090/api/Producto/obtenerProductoPorId/${selectedProductId}`;
-
-  $.ajax({
-    method: "GET",
-    url: apiUrl,
-    success: function (response) {
-      $("#productName").val(response.nombre);
-      $("#productDescription").val(response.descripcion);
-      $("#productPrice").val(response.precio);
-    },
-    error: function (error) {
-      console.error(error);
-    },
-  });
-}
-
-function modificarProducto() {
-  var id = getProductIdFromURL();
-  var name = document.getElementById("productName").value;
-  var description = document.getElementById("productDescription").value;
-  var price = document.getElementById("productPrice").value;
-
-  if (name.trim() !== "" && description.trim() !== "" && price.trim() !== "") {
-    var actualizarProducto = {
-      productoId: id,
-      nombre: name,
-      descripcion: description,
-      precio: price,
-    };
-
-    var apiUrl = "http://localhost:4090/api/Producto/actualizarProducto";
-
-    $.ajax({
-      headers: {
-        Accept: "application/json",
-      },
-      method: "PUT",
-      url: apiUrl,
-      dataType: "json",
-      data: JSON.stringify(actualizarProducto),
-      hasContent: true,
-      statusCode: {
-        200: function () {
-          mostrarMensaje("actualizado", 200),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        201: function () {
-          mostrarMensaje("actualizado", 201),
-            clearFormFields(),
-            waitForConfirmation();
-        },
-        400: function () {
-          mostrarMensaje("actualizar", 400);
-        },
-        404: function () {
-          mostrarMensaje("actualizar", 404);
-        },
-        500: function () {
-          mostrarMensaje("actualizar", 500);
-        },
-      },
-    });
-  } else {
-    Swal.fire({
-      title: "Message",
-      icon: "error",
-      text: "Por favor, complete todos los campos.",
-    });
-  }
-}
-
-var btnCreateProduct = document.getElementById("btnCreateProduct");
-if (btnCreateProduct != null)
-  btnCreateProduct.addEventListener("click", function (e) {
+function LoadCancelBtn(){
+  var btnCancel = document.getElementById("btnCancel");
+  if (btnCancel != null)
+    btnCancel.addEventListener("click", function (e) {
     e.preventDefault();
-    validarNuevoProducto();
+    window.history.back();
   });
+}
 
-var btnUpdateProduct = document.getElementById("btnUpdateProduct");
-if (btnUpdateProduct != null)
-  btnUpdateProduct.addEventListener("click", function (e) {
-    e.preventDefault();
-    modificarProducto();
-  });
+// Recargar datos de la página
+function DataReload() {
+  startOfPage();
+}
 
-var btnCancel = document.getElementById("btnCancel");
-if (btnCancel != null)
-btnCancel.addEventListener("click", function (e) {
-    e.preventDefault();
-    goBack();
-  });
-
-function mostrarMensaje(action, statusCode) {
+// Mostrar mensaje según acción y estado
+function mostrarMensaje(action, statusCode, type) {
   var title, icon, text;
 
   switch (statusCode) {
-    case 200:
-    case 201:
-      title = "Success";
+    case true:
+      title = "Éxito";
       icon = "success";
-      text = "Su " + type + " fue " + action + " exitosamente.";
+      text = "El " + type + " se " + action + " correctamente.";
       break;
-    case 400:
-    case 404:
-    case 500:
+    case false:
       title = "Error";
       icon = "error";
-      text = "Existe un problema al " + action + " el " + type + ".";
+      text = "Hubo un problema al " + action + " el " + type + ".";
       break;
     default:
-      title = "Error";
+      title = "Error de servidor";
       icon = "error";
-      text = "Ha ocurrido un error inesperado.";
+      text = "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más tarde.";
       break;
   }
 
@@ -283,14 +247,12 @@ function mostrarMensaje(action, statusCode) {
     title: title,
     icon: icon,
     text: text,
+    confirmButtonText: "Aceptar",
   });
 }
 
-window.onload = function () {
-  startOfPage();
-};
-
-function waitForConfirmation() {
+// Esperar confirmación después de una transacción (crear o actualizar)
+function waitForConfirmationForm() {
   document.addEventListener("click", function (event) {
     const target = event.target;
     if (
@@ -298,18 +260,27 @@ function waitForConfirmation() {
       target.classList.contains("swal2-confirm") &&
       target.classList.contains("swal2-styled")
     ) {
-      goToList();
+      // Redireccionar a productoList.html en la misma pestaña
+      window.location.href = "productoList.html";
     }
   });
 }
 
-function clearFormFields() {
-  const inputFields = document.querySelectorAll("input, textarea");
-  inputFields.forEach(function (field) {
-    field.value = "";
+// Esperar confirmación después de eliminar
+function waitForConfirmationList() {
+  document.addEventListener("click", function (event) {
+    const target = event.target;
+    if (
+      target &&
+      target.classList.contains("swal2-confirm") &&
+      target.classList.contains("swal2-styled")
+    ) {
+      DataReload();
+    }
   });
 }
 
-function goBack() {
-  window.history.back();
-}
+// Inicialización de la página
+window.onload = function () {
+  startOfPage();
+};

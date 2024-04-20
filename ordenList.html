@@ -118,117 +118,12 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@latest/dist/js/bootstrap.bundle.min.js"></script>
-	<script src=" https://cdn.jsdelivr.net/npm/ag-grid-enterprise@31.2.0/dist/ag-grid-enterprise.min.js "></script>
-
+	<script src="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@31.2.0/dist/ag-grid-enterprise.min.js"></script>
+	<script src="JS/services/ClienteService.js"></script>
+	<script src="JS/services/CuponService.js"></script>
+	<script src="JS/services/ProductoService.js"></script>
 	<script src="JS/services/OrdenService.js"></script>
-	<script type="text/javascript" rel="script">
-		const cellRendererDelete = (options) => {
-			if (!options.data) return null;
-			const button = document.createElement('span');
-			button.textContent = 'Eliminar';
-			button.classList.add('text-danger', 'cursor-pointer');
-			button.addEventListener('click', async () => {
-				const { data } = options;
-				const { detalle } = data;
-				const { detalleId } = detalle;
-				const result = await deleteDetalleOrden(detalleId);
-				if (result) {
-					Swal.fire('Eliminado', 'El detalle de la orden ha sido eliminado correctamente.', 'success');
-					reloadData();
-				}
-			});
-
-			return button;
-		};
-
-		let apiGrid = null;
-		const gridOptions = {
-			columnDefs: [
-				{
-					valueFormatter: ({ value, node }) => {
-						if (node.allLeafChildren.length === 0) return `Orden #${value}`;
-
-						const { cliente, orden } = node.allLeafChildren[0].data;
-						return `Orden #${orden.ordenId} - ${cliente.nombre} ${cliente.primerApellido} ${cliente.segundoApellido}`;
-					},
-					headerName: 'Orden', field: 'orden.ordenId',
-					hide: true, rowGroup: true,
-				},
-				{
-					headerName: 'Detalle ID', field: 'detalle.detalleId',
-				},
-				{
-					headerName: 'Nombre Producto', field: 'producto.nombre',
-				},
-				{
-					headerName: 'Descripción', field: 'producto.descripcion',
-				},
-				{
-					headerName: 'Precio', field: 'producto.precio',
-				},
-				{
-					headerName: 'Cantidad', field: 'detalle.cantidad',
-				},
-				{
-					headerName: 'Fecha', field: 'orden.fecha',
-				},
-				{
-					headerName: 'Acciones',
-					cellRenderer: cellRendererDelete,
-				}
-			],
-			defaultColDef: {
-				filter: true,
-				sortable: true,
-				editable: false,
-				resizable: true,
-			},
-		};
-
-		async function fetchDetalleOrden(orden, productos) {
-			try {
-				const cliente = await getCliente(orden.clienteId);
-				const detalles = await getDetalleOrden(orden.ordenId);
-				const formatted = detalles.map(d => {
-					const producto = productos.find(p => p.productoId === d.productoId);
-					if (!producto) return null;
-
-					return {
-						orden,
-						cliente,
-						producto,
-						detalle: d,
-					};
-				});
-
-				return formatted.filter(Boolean);
-			}
-			catch (error) {
-				console.error(error);
-				return [];
-			}
-		}
-
-		async function reloadData() {
-			const productos = await getAllProductos();
-			const ordenes = await getAllOrdenes();
-
-			const obtenidos = ordenes.map(o => fetchDetalleOrden(o, productos));
-			const detalles = await Promise.all(obtenidos);
-			const data = detalles.flat();
-
-			console.log(JSON.stringify(data, null, 2));
-
-			apiGrid.setGridOption('rowData', data);
-		}
-
-		$(document).ready(async () => {
-			const gridDiv = document.querySelector('#ag-root');
-			apiGrid = new agGrid.createGrid(gridDiv, gridOptions);
-
-			reloadData();
-		});
-	</script>
+	<script src="JS/OrdenController.js"></script>
 </body>
 
 </html>

@@ -1,36 +1,35 @@
-// OrdenService.js
+// ClienteService.js
 
-const apiUrlOrden = "http://localhost:4090/api/Orden/";
-const apiUrlDetallesOrden = "http://localhost:4090/api/DetallesOrden/";
+const apiUrlCliente = "http://localhost:4090/api/Cliente/";
 
-// Obtener todas las órdenes
-async function obtenerOrdenes() {
+// Obtener todos los clientes
+async function obtenerClientes() {
   return $.ajax({
-    url: apiUrlOrden + "obtenerTodasLasOrdenes",
+    url: apiUrlCliente + "obtenerClientes",
     method: "GET",
     dataType: "json",
   });
 }
 
-// Obtener orden por ID
-async function obtenerOrdenPorId(id) {
+// Obtener cliente por ID
+async function obtenerClientePorId(id) {
   return $.ajax({
     method: "GET",
-    url: apiUrlOrden + `obtenerOrdenPorId/${id}`,
+    url: apiUrlCliente + `obtenerClientePorId/${id}`,
   });
 }
 
-// Crear una nueva orden
-async function crearOrden(nuevaOrden) {
+// Crear un nuevo cliente
+async function crearCliente(nuevoCliente) {
   return new Promise((resolve, reject) => {
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "POST",
-      url: apiUrlOrden + "crearOrden",
+      url: apiUrlCliente + "crearCliente",
       dataType: "text json",
-      data: JSON.stringify(nuevaOrden),
+      data: JSON.stringify(nuevoCliente),
       hasContent: true,
     })
       .done((response, textStatus, xhr) => {
@@ -46,17 +45,17 @@ async function crearOrden(nuevaOrden) {
   });
 }
 
-// Actualizar orden existente
-async function actualizarOrden(actualizadaOrden) {
+// Actualizar cliente existente
+async function actualizarCliente(actualizadoCliente) {
   return new Promise((resolve, reject) => {
     $.ajax({
       headers: {
         Accept: "application/json",
       },
       method: "PUT",
-      url: apiUrlOrden + "actualizarOrden",
+      url: apiUrlCliente + "actualizarCliente",
       dataType: "json",
-      data: JSON.stringify(actualizadaOrden),
+      data: JSON.stringify(actualizadoCliente),
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });
@@ -71,12 +70,12 @@ async function actualizarOrden(actualizadaOrden) {
   });
 }
 
-// Eliminar orden por ID
-async function eliminarOrdenRequest(id) {
+// Eliminar cliente por ID
+async function eliminarClienteRequest(id) {
   return new Promise((resolve, reject) => {
     $.ajax({
       method: "DELETE",
-      url: apiUrlOrden + `eliminarOrden/${id}`,
+      url: apiUrlCliente + `eliminarCliente/${id}`,
     })
       .done((response, textStatus, xhr) => {
         resolve({ success: true, status: xhr.status, data: response });
@@ -88,37 +87,5 @@ async function eliminarOrdenRequest(id) {
           resolve({ success: false, status: xhr.status, error: errorThrown });
         }
       });
-  });
-}
-
-
-// Crear un nuevo detalle de orden
-async function crearDetallesOrden(nuevoOrdenDetalle) {
-	return $.ajax({
-	  headers: {
-		Accept: "application/json",
-	  },
-	  method: "POST",
-	  url: apiUrlDetallesOrden + "crearDetallesOrden",
-	  dataType: "json",
-	  data: JSON.stringify(nuevoOrdenDetalle),
-	  hasContent: true,
-	});
-  }
-
-// Obtener detalles de orden por ID de orden
-async function obtenerDetallesOrdenPorOrdenId(ordenId) {
-  return $.ajax({
-    method: "GET",
-    url: apiUrlDetallesOrden + `obtenerDetallesOrdenPorOrdenId/${ordenId}`,
-  });
-}
-
-// Eliminar detalles de orden por ID
-async function eliminarDetallesOrden(id) {
-  return $.ajax({
-    method: "DELETE",
-    url: apiUrlDetallesOrden + `eliminarDetallesOrden/${id}`,
-    dataType: "text", 
   });
 }
