@@ -45,7 +45,7 @@ async function cargarvalidacioncupones() {
 
       iconSpan.className = 'bi bi-check-circle-fill text-success';
     } else {
-      console.error('Error al validar el cupón:', error);
+      console.error('Error al validar el cupón.');
       iconSpan.className = 'bi bi-x-circle-fill text-danger';
     }
   });
@@ -67,8 +67,17 @@ function validarNuevaOrden() {
   const clienteId = document.getElementById('clientesSelect').value;
   const total = document.getElementById('total').value;
 
-  if (clienteId.trim() !== '' && total.trim() !== '') {
+  if (!clienteId || clienteId.trim() === '' || clienteId === 'null') {
+    Swal.fire({
+      title: "Message",
+      icon: "error",
+      text: "Por favor, seleccione un cliente.",
+    });
 
+    return;
+  }
+
+  if (total.trim() !== '') {
     var nuevaOrden = {
       "total": parseFloat(total),
       "fecha": new Date().toISOString().replace(/T.*/, ''),
@@ -81,8 +90,11 @@ function validarNuevaOrden() {
     crearOrden(nuevaOrden)
       .then(({ status, data }) => {
         if (status == 200 || status == 201) {
-          mostrarMensaje("creado", true, type);
-          validarNuevaOrdenDetalle(data.ordenId); 
+          validarNuevaOrdenDetalle(data.ordenId);
+          mostrarMensaje("creado", true, type)
+            .then(() => {
+              goToList();
+            });
         } else {
           mostrarMensaje("creado", false, type);
         }
@@ -101,7 +113,7 @@ function validarNuevaOrden() {
   }
 }
 
-function validarNuevaOrdenDetalle(ordenId) {
+async function validarNuevaOrdenDetalle(ordenId) {
 
   var productosData = [];
 
@@ -267,11 +279,11 @@ function agregarProducto(isFirst) {
     ${isFirst ? '' : '<hr class="EL--hr-gradient">'}
     <div class="row align-items-center">
       <div class="col-12 mb-4">
-        <label for="productos" class="mb-0">Producto:</label>                     
+        <label for="productos">Producto:</label>                     
         <select name="productos[]" class="form-control productosSelect" required></select>
       </div>
-      <div class="col-6 text-center">
-        <label for="cantidad" class="mb-0">Cantidad:</label>
+      <div class="col-xl my-3">
+        <label for="cantidad">Cantidad:</label>
         <div class="input-group">
           <span class="input-group-btn">
             <button class="btn btn-outline-secondary decreaseBtn" type="button">-</button>
@@ -282,8 +294,8 @@ function agregarProducto(isFirst) {
           </span>
         </div>
       </div>
-      <div class="col-6">
-        <label for="precio" class="mb-0">Precio:</label>
+      <div class="col-xl my-3">
+        <label for="precio">Precio:</label>
         <input type="text" class="form-control price-input" name="precio[]" required disabled>                   
       </div>     
       ${isFirst ? '' : '<div class="col-6 d-flex justify-content-center align-items-stretch flex-column text-right pt-3"><button type="button" class="btn btn-danger btn-sm btn-remove-producto" onclick="eliminarProducto(this)"><span class="bi bi-trash"></span> Eliminar</button></div>'}
@@ -353,6 +365,11 @@ async function validarCupon(cuponCodigo) {
     }
   } catch (error) {
     console.error("Error validating coupon:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: 'Error al validar el cupón!',
+    });
     return null;
   }
 }
@@ -435,7 +452,7 @@ function mostrarMensaje(action, statusCode, type) {
       break;
   }
 
-  Swal.fire({
+  return Swal.fire({
     title: title,
     icon: icon,
     text: text,
