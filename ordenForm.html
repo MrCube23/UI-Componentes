@@ -71,22 +71,24 @@
   <div class="container mb-5">
     <h2 class="text-center mb-5 mt-4">Crear Orden</h2>
     <form action="#" method="post" enctype="multipart/form-data">
-      <div class="row mb-5">
-        <div class="col">
+      <div class="row my-1">
+        <div class="col-xl my-2">
           <label for="clienteName">Cliente:</label>
           <select name="clientes" id="clientesSelect" class="form-control" required>
-            <option value="">Selecciona un cliente</option>
+            <option disabled selected>
+              Selecciona un cliente
+            </option>
             <!-- Opciones de clientes -->
           </select>
         </div>
-        <div class="col">
+        <div class="col-xl my-2">
           <label for="total">Total:</label>
           <input type="text" class="form-control" id="total" name="total" required disabled>
         </div>
       </div>
 
-      <div class="row mb-5">
-        <div class="col">
+      <div class="row my-1">
+        <div class="col-xl">
           <label for="codigo-cupon">Cupon:</label>
           <div class="input-group">
             <input type="text" class="form-control" id="codigo-cupon" name="codigo-cupon" required="" spellcheck="false"
@@ -96,24 +98,34 @@
             </span>
           </div>
         </div>
-        <div class="col align-self-end">
+        <div class="col-xl align-self-end">
           <button type="button" class="btn btn-primary btn-block mb-0" id="btnValitadeCupon">Validar</button>
         </div>
       </div>
 
-      <h3 class="text-center mb-4">Añadir Productos</h3>
-      <div class="mb-3">
-        <button type="button" class="btn btn-primary" id="btnAddProducto" onclick="agregarProducto(false)">Añadir
-          Producto +</button>
-      </div>
+      <h3 class="text-center py-5">Añadir Productos</h3>
       <div id="productosContainer" class="mb-4">
-
+        
       </div>
-      <button type="submit" class="btn btn-primary create-button-form" id="btnCreateCliente">Crear</button>
+      <div class="mb-3 btn-group" role="group" aria-label="Basic example">
+        <button 
+          type="button"
+          id="btnAddProducto"
+          class="btn btn-primary"
+          onclick="agregarProducto(false)">
+          Añadir Producto
+        </button>
+        <button 
+          type="submit"
+          id="btnCreateCliente"
+          class="btn btn-primary create-button-form">
+          Crear
+        </button>
+      </div>
     </form>
   </div>
 
-  <footer class="footer bg-darkblue text-light" id="footer">
+  <footer class="footer bg-darkblue text-light" id="footer" style="margin-top: 35vh">
     <div class="row justify-content-between footer-container EL--custom-row">
       <div class="col-md-6 footer-left">
         <img class='footer-img' src="img/white_logo.svg" alt="Logo de EasyList en color blanco." />
