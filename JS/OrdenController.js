@@ -453,9 +453,22 @@ const cellRendererDelete = (options) => {
     const { detalle } = data;
     const { detalleId } = detalle;
     const result = await eliminarDetallesOrden(detalleId);
-    if (result) {
-      Swal.fire('Eliminado', 'El detalle de la orden ha sido eliminado correctamente.', 'success');
+    if (result.success) {
+      // Swal.fire('Eliminado', 'El detalle de la orden ha sido eliminado correctamente.', 'success');
+      Swal.fire({
+        title: 'Eliminado',
+        text: 'El detalle de la orden ha sido eliminado correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Aceptar',
+      });
       reloadData();
+    } else {
+      Swal.fire({
+        title: 'Error',
+        text: 'Ha ocurrido un error al eliminar el detalle de la orden.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+      });
     }
   });
 
@@ -531,6 +544,8 @@ async function fetchDetalleOrden(orden, productos) {
 }
 
 async function reloadData() {
+  apiGrid.setGridOption('rowData', []);
+
   const productos = await obtenerProductos();
   const ordenes = await obtenerOrdenes();
 

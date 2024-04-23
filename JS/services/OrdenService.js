@@ -116,9 +116,20 @@ async function obtenerDetallesOrdenPorOrdenId(ordenId) {
 
 // Eliminar detalles de orden por ID
 async function eliminarDetallesOrden(id) {
-  return $.ajax({
-    method: "DELETE",
-    url: apiUrlDetallesOrden + `eliminarDetallesOrden/${id}`,
-    dataType: "text", 
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      method: "DELETE",
+      url: apiUrlDetallesOrden + `eliminarDetallesOrden/${id}`,
+    })
+      .done((response, textStatus, xhr) => {
+        resolve({ success: true, status: xhr.status, data: response });
+      })
+      .fail((xhr, textStatus, errorThrown) => {
+        if (xhr.responseText.trim() === "") {
+          resolve({ success: true, status: xhr.status, data: null });
+        } else {
+          resolve({ success: false, status: xhr.status, error: errorThrown });
+        }
+      });
   });
 }
